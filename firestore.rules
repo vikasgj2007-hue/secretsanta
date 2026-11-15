@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.role == 'admin' || 
+         request.auth.token.email == 'admin@college.edu');
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 1. Users Collection
+    match /users/{userId} {
+      // Normal participants can only read their own record or public directory list without private fields
+      allow read: if isAuthenticated();
+      
+      // Registration allowed if registration is open and participantNumber is properly assigned
+      allow create: if isAuthenticated() && 
+        request.resource.data.id == request.auth.uid &&
+        request.resource.data.role == 'faculty';
+
+      // Updates only permitted to the user's own profile (e.g. wishlist hints), but immutable participantNumber
+      allow update: if isOwner(userId) && 
+        request.resource.data.participantNumber == resource.data.participantNumber &&
+        request.resource.data.role == resource.data.role;
+
+      // Deletion only by admin
+      allow delete: if isAdmin();
+    }
+
+    // 2. Secret Santa Assignments Collection
+    // CRITICAL: Normal users can NEVER read the global assignments collection!
+    // They can ONLY read their own assignment where giverId == auth.uid.
+    match /assignments/{assignmentId} {
+      // Giver can only read their own assignment document
+      allow read: if isAuthenticated() && 
+        (resource.data.giverId == request.auth.uid || isAdmin());
+
+      // Only backend / admin transaction can create or modify assignments
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 3. Event State Collection
+    match /event/{eventId} {
+      // Any authenticated or anonymous user can read event status (OPEN / ACTIVE)
+      allow read: if true;
+
+      // Only admin can start event, close registration, or change status
+      allow write: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head><title>Audio Debug</title></head>
+<body>
+<div id="output">Analyzing...</div>
+<script>
+window.__AUDIO_DONE__ = false;
+window.__AUDIO_REPORT__ = null;
+
+(async () => {
+  try {
+    const res = await fetch('/audio/christmas-train-music.mp3');
+    const arrayBuffer = await res.arrayBuffer();
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    
+    const channelData = audioBuffer.getChannelData(0);
+    const sampleRate = audioBuffer.sampleRate;
+    const totalDuration = audioBuffer.duration;
+    
+    // Sample every 0.25 seconds
+    const step = 0.25;
+    const report = [];
+    let firstSoundTime = null;
+    let musicStartTime = null;
+
+    for (let t = 0; t < Math.min(25, totalDuration); t += step) {
+      const startIdx = Math.floor(t * sampleRate);
+      const endIdx = Math.floor((t + step) * sampleRate);
+      let sumSquares = 0;
+      let peak = 0;
+      for (let i = startIdx; i < endIdx && i < channelData.length; i++) {
+        const val = Math.abs(channelData[i]);
+        if (val > peak) peak = val;
+        sumSquares += val * val;
+      }
+      const count = endIdx - startIdx;
+      const rms = count > 0 ? Math.sqrt(sumSquares / count) : 0;
+      
+      if (rms > 0.01 && firstSoundTime === null) {
+        firstSoundTime = t;
+      }
+      if (rms > 0.05 && musicStartTime === null) {
+        musicStartTime = t;
+      }
+
+      report.push({
+        time: t.toFixed(2),
+        rms: rms.toFixed(4),
+        peak: peak.toFixed(4)
+      });
+    }
+
+    const summary = {
+      duration: totalDuration.toFixed(2),
+      sampleRate,
+      firstSoundTime,
+      musicStartTime,
+      sample0to10: report.slice(0, 40)
+    };
+
+    window.__AUDIO_REPORT__ = summary;
+    window.__AUDIO_DONE__ = true;
+    document.getElementById('output').innerText = JSON.stringify(summary, null, 2);
+  } catch (err) {
+    document.getElementById('output').innerText = 'ERROR: ' + err.message;
+    window.__AUDIO_DONE__ = true;
+  }
+})();
+</script>
+</body>
+</html>
+

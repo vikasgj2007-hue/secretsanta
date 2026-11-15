@@ -1,0 +1,39 @@
+# ==============================================================================
+# THE EVERGREEN EXPRESS — GIT IGNORE CONFIGURATION
+# ==============================================================================
+
+# Private environment variables containing database and API secrets
+.env
+.env.local
+.env.*.local
+
+# Dependency directories
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+

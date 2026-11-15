@@ -1,0 +1,385 @@
+/* ==========================================================================
+   FACULTY DASHBOARD STYLES
+   Frosted Glass, Profile, Gift Preferences, and Train Boarding CTA
+   ========================================================================== */
+
+.dashboard-section {
+  position: relative;
+  min-height: 100vh;
+  padding: 110px 1.5rem 60px;
+  max-width: 1140px;
+  margin: 0 auto;
+  z-index: var(--z-content);
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-header-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.dashboard-title-area h1 {
+  font-size: var(--text-3xl);
+  margin-bottom: 0.35rem;
+}
+
+.dashboard-subtitle {
+  color: var(--color-snow-muted);
+  font-size: var(--text-sm);
+}
+
+.dashboard-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Three Cards Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 1.75rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Frosted Glass Card */
+.glass-card {
+  background: var(--glass-bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 1.85rem;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--transition-normal), border-color var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(234, 179, 8, 0.4), transparent);
+}
+
+.glass-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--glass-border-hover);
+}
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.card-badge-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--color-gold-champagne);
+}
+
+/* Profile Info List */
+.profile-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.profile-info-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.info-label {
+  font-size: var(--text-xs);
+  color: var(--color-snow-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.info-val {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-snow-white);
+  text-align: right;
+}
+
+.participant-num-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.2) 0%, rgba(217, 119, 6, 0.3) 100%);
+  border: 1px solid var(--color-gold-border);
+  color: var(--color-gold-champagne);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* Gift Preference Box */
+.gift-pref-box {
+  background: rgba(10, 18, 38, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.gift-pref-category {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-gold-light);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gift-pref-wishlist {
+  font-size: var(--text-sm);
+  color: var(--color-snow-soft);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Event Status Card Features */
+.event-state-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  background: rgba(6, 78, 59, 0.25);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.event-state-indicator.waiting {
+  background: rgba(217, 119, 6, 0.18);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.event-state-indicator.active {
+  background: rgba(185, 28, 28, 0.22);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.event-state-title {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--color-snow-white);
+}
+
+.event-state-desc {
+  font-size: var(--text-xs);
+  color: var(--color-snow-muted);
+}
+
+/* ==========================================================================
+   TRAIN BOARDING HERO BANNER ON DASHBOARD
+   ========================================================================== */
+
+.train-boarding-hero-card {
+  background: radial-gradient(circle at 80% 20%, rgba(136, 19, 55, 0.6) 0%, rgba(15, 28, 56, 0.85) 60%, rgba(5, 10, 22, 0.95) 100%);
+  border: 1px solid var(--color-gold-border);
+  border-radius: var(--radius-xl);
+  padding: 2.75rem 2.5rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(234, 179, 8, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.train-hero-text h2 {
+  font-size: var(--text-2xl);
+  color: var(--color-snow-white);
+  margin-bottom: 0.5rem;
+}
+
+.train-hero-text p {
+  color: var(--color-snow-soft);
+  font-size: var(--text-sm);
+  max-width: 580px;
+  line-height: 1.6;
+}
+
+.boarding-action-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+/* ==========================================================================
+   REVEALED SECRET SANTA RECIPIENT HERO CARD (PERMANENT DASHBOARD DISPLAY)
+   ========================================================================== */
+
+.revealed-recipient-hero-card {
+  background: radial-gradient(circle at 50% 15%, rgba(6, 78, 59, 0.75) 0%, rgba(15, 28, 56, 0.92) 65%, rgba(5, 10, 22, 0.98) 100%);
+  border: 2px solid var(--color-gold-border);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 35px rgba(234, 179, 8, 0.2);
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.revealed-recipient-hero-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #b91c1c, #eab308, #22c55e, #eab308, #b91c1c);
+}
+
+.card-badge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.gold-badge {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  color: var(--color-gold-champagne);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.status-pill-completed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.95rem;
+  background: rgba(34, 197, 94, 0.18);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #86efac;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.recipient-heading-sub {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-style: italic;
+  color: var(--color-gold-champagne);
+  margin-bottom: 0.35rem;
+}
+
+.recipient-name-banner {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.5vw + 0.5rem, 3.25rem);
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.1;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(180deg, #ffffff 0%, #fef08a 60%, #eab308 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7));
+}
+
+.recipient-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.recipient-dept-badge {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--color-snow-soft);
+  font-size: var(--text-xs);
+  padding: 0.25rem 0.85rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.recipient-gift-details {
+  background: rgba(10, 18, 38, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 1.35rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.detail-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-label {
+  font-size: var(--text-xs);
+  color: var(--color-gold-champagne);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.detail-value {
+  font-size: var(--text-sm);
+  color: var(--color-snow-soft);
+  line-height: 1.5;
+}
+
+.mission-instructions-strip {
+  background: rgba(185, 28, 28, 0.22);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.25rem;
+  font-size: var(--text-xs);
+  color: #fecaca;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1.4;
+}

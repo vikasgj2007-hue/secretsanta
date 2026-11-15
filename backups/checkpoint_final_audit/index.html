@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <title>THE EVERGREEN EXPRESS — A Secret Christmas Journey</title>
+    <meta name="description" content="THE EVERGREEN EXPRESS — A Secret Christmas Journey. A Little Magic. A Special Someone. A Christmas to Remember." />
+    <meta name="theme-color" content="#050a16" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Google Fonts: STRICTLY Playfair Display & Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Core Styles (Self-contained, works 100% via file:/// and web servers) -->
+    <link rel="stylesheet" href="./bundle.css?v=20261113_1916" />
+  </head>
+  <body>
+    <!-- App Root Container -->
+    <div id="app">
+      <!-- Fixed Cinematic Background World -->
+      <div class="world-backdrop" aria-hidden="true">
+        <div class="sky-gradient"></div>
+        <canvas id="stars-canvas"></canvas>
+        <div class="scenery-photo-layer" id="landing-photo-backdrop"></div>
+        <div class="scenery-vignette"></div>
+        <canvas id="snow-canvas"></canvas>
+
+        <!-- Subtle Twinkling Fairy Lights on Christmas Tree (Left) -->
+        <div class="tree-fairy-lights-overlay" id="tree-lights">
+          <span class="fairy-light" style="top: 20%; left: 45%; animation-delay: 0.2s;"></span>
+          <span class="fairy-light" style="top: 35%; left: 30%; animation-delay: 1.1s;"></span>
+          <span class="fairy-light" style="top: 40%; left: 60%; animation-delay: 0.7s;"></span>
+          <span class="fairy-light" style="top: 55%; left: 20%; animation-delay: 1.8s;"></span>
+          <span class="fairy-light" style="top: 60%; left: 50%; animation-delay: 0.4s;"></span>
+          <span class="fairy-light" style="top: 65%; left: 75%; animation-delay: 2.1s;"></span>
+          <span class="fairy-light" style="top: 78%; left: 35%; animation-delay: 1.3s;"></span>
+          <span class="fairy-light" style="top: 80%; left: 60%; animation-delay: 0.9s;"></span>
+        </div>
+
+        <!-- Castle Window Warmth Breathing Glow (Right) -->
+        <div class="castle-warmth-overlay" id="castle-warmth">
+          <span class="castle-window-glow" style="top: 32%; left: 42%; animation-delay: 0.5s;"></span>
+          <span class="castle-window-glow" style="top: 34%; left: 56%; animation-delay: 1.8s;"></span>
+          <span class="castle-window-glow" style="top: 48%; left: 48%; animation-delay: 2.4s;"></span>
+          <span class="castle-window-glow" style="top: 52%; left: 64%; animation-delay: 1.1s;"></span>
+          <span class="castle-window-glow" style="top: 66%; left: 52%; animation-delay: 3.2s;"></span>
+        </div>
+
+        <!-- Cinematic Santa & Reindeer Sleigh in Flight -->
+        <div class="santa-sleigh-container" id="santa-sleigh">
+          <div class="santa-stardust-trail"></div>
+          <svg class="santa-silhouette-svg" viewBox="0 0 260 70">
+            <!-- 4 Reindeer Pairs running forward -->
+            <path d="M210 35 C215 30, 225 32, 230 28 C232 24, 238 22, 240 25 C242 27, 236 32, 238 36 C240 40, 246 44, 244 48 C242 50, 238 46, 234 44 C230 46, 226 48, 222 42 Z" />
+            <path d="M175 36 C180 31, 190 33, 195 29 C197 25, 203 23, 205 26 C207 28, 201 33, 203 37 C205 41, 211 45, 209 49 C207 51, 203 47, 199 45 C195 47, 191 49, 187 43 Z" />
+            <path d="M140 37 C145 32, 155 34, 160 30 C162 26, 168 24, 170 27 C172 29, 166 34, 168 38 C170 42, 176 46, 174 50 C172 52, 168 48, 164 46 C160 48, 156 50, 152 44 Z" />
+            <path d="M105 38 C110 33, 120 35, 125 31 C127 27, 133 25, 135 28 C137 30, 131 35, 133 39 C135 43, 141 47, 139 51 C137 53, 133 49, 129 47 C125 49, 121 51, 117 45 Z" />
+            <!-- Reins -->
+            <path d="M55 42 Q 130 52, 235 34" stroke="rgba(254, 240, 138, 0.6)" stroke-width="1.2" fill="none" />
+            <!-- Santa & Curved Sleigh -->
+            <path d="M25 48 C30 54, 45 56, 60 52 C65 48, 70 42, 65 38 C55 32, 45 34, 40 40 C35 38, 30 42, 25 48 Z" />
+            <circle cx="50" cy="30" r="6" />
+            <path d="M46 32 C48 38, 54 38, 56 32 Z" fill="#ffffff" />
+            <!-- Glowing Red Rudolph Nose -->
+            <circle cx="242" cy="24" r="2.5" fill="#ef4444" filter="drop-shadow(0 0 6px #ef4444)" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Persistent Site Header -->
+      <header class="site-header">
+        <div class="header-left">
+          <!-- Atmospheric Audio Toggle -->
+          <button id="sound-toggle" class="sound-toggle-btn" aria-label="Toggle atmospheric sound">
+            <span class="sound-icon-pulse"></span>
+            <span id="sound-btn-text">Sound Off</span>
+          </button>
+        </div>
+
+        <div class="header-right" style="display: flex; align-items: center; gap: 1.25rem;">
+          <div id="header-user-slot" class="header-user-status"></div>
+
+          <!-- College Brand & Logo (Click opens Admin Login) -->
+          <button id="college-brand-logo" class="college-brand-btn" title="ST PAULS COLLEGE • Administration Portal" aria-label="ST PAULS COLLEGE Administration Portal">
+            <img src="/images/st-pauls-college-logo.png" alt="ST PAULS COLLEGE - Affiliated to Bangalore University | NAAC Accredited | AICTE Approved" class="college-brand-logo-img" />
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Dynamic Content Slot (Landing, Dashboard, or Admin) -->
+      <main id="main-content" role="main"></main>
+
+      <!-- Fullscreen Interactive Christmas Train Journey Overlay -->
+      <div id="train-journey-overlay" class="train-journey-overlay" aria-hidden="true">
+        <!-- Parallax Scenery Viewport -->
+        <div class="train-scenery-viewport">
+          <div class="train-scenery-stage stage-departure active"></div>
+          <div class="train-scenery-stage stage-viaduct"></div>
+          <div class="train-scenery-stage stage-arrival"></div>
+          <div class="train-scenery-vignette"></div>
+        </div>
+
+        <!-- Railroad Track & Snowy Bed -->
+        <div class="railway-track-bed">
+          <div class="rail-ties-pattern"></div>
+          <div class="rail-steel"></div>
+          <div class="track-snow-cover"></div>
+        </div>
+
+        <!-- Train HUD (Progress, Waypoints, Exit, Music Control) -->
+        <div class="train-hud-top">
+          <div class="train-hud-header">
+            <span class="journey-badge">🚂 ST PAULS COLLEGE • The Evergreen Express</span>
+            <div class="train-hud-actions" style="display: flex; align-items: center; gap: 0.5rem;">
+              <button id="btn-train-music-toggle" class="btn-train-music-toggle" type="button" aria-label="Toggle Christmas Music" title="Mute or Unmute Christmas Music">
+                <span id="train-music-icon">🔊</span>
+                <span id="train-music-label">Music On</span>
+              </button>
+              <button id="btn-exit-journey" class="btn-exit-journey">Close Journey</button>
+            </div>
+          </div>
+          <div class="journey-progress-track">
+            <div id="journey-progress-fill" class="journey-progress-fill"></div>
+          </div>
+          <div id="journey-waypoint-label" class="journey-waypoint-label">
+            Departing: Faculty Quad Central Station
+          </div>
+        </div>
+
+        <!-- Train Movement Container: STRICTLY handles translateX (LEFT to RIGHT) -->
+        <div id="train-movement-container" class="train-movement-container">
+          <!-- Train Visual: STRICTLY faces RIGHT, Locomotive leads at the front right -->
+          <div class="train-visual train-rolling">
+
+            <!-- CAR 1: COACH 4 — Starlight Observation Lounge (Burgundy & Gold with Observation Deck) -->
+            <div class="train-car train-coach train-coach-obs">
+              <div class="car-snow-roof"><div class="roof-icicles"></div></div>
+              <div class="coach-clerestory-strip"></div>
+              <div class="coach-windows-row">
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+              </div>
+              <div class="coach-gold-pinstripe"></div>
+              <div class="coach-garland-pine"><span class="pine-berry"></span><span class="pine-berry"></span><span class="pine-berry"></span></div>
+              <div class="coach-nameplate">Starlight Observation</div>
+              <div class="coach-bogies-row">
+                <div class="bogie-truck"><div class="bogie-spring"></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div></div>
+                <div class="bogie-truck"><div class="bogie-spring"></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div></div>
+              </div>
+            </div>
+            <div class="gangway-bellows"></div>
+
+            <!-- CAR 2: COACH 3 — Holiday Parlor Car (Deep Emerald & Champagne Gold) -->
+            <div class="train-car train-coach train-coach-parlor">
+              <div class="car-snow-roof"><div class="roof-icicles"></div></div>
+              <div class="coach-clerestory-strip"></div>
+              <div class="coach-windows-row">
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+              </div>
+              <div class="coach-gold-pinstripe"></div>
+              <div class="coach-garland-pine"><span class="pine-berry"></span><span class="pine-berry"></span><span class="pine-berry"></span></div>
+              <div class="coach-nameplate">Holiday Parlor Car</div>
+              <div class="coach-bogies-row">
+                <div class="bogie-truck"><div class="bogie-spring"></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div></div>
+                <div class="bogie-truck"><div class="bogie-spring"></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div></div>
+              </div>
+            </div>
+            <div class="gangway-bellows"></div>
+
+            <!-- CAR 3: COACH 2 — Evergreen Dining Saloon (Rich Burgundy & Gold Crest) -->
+            <div class="train-car train-coach train-coach-dining">
+              <div class="car-snow-roof"><div class="roof-icicles"></div></div>
+              <div class="coach-clerestory-strip"></div>
+              <div class="coach-windows-row">
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+              </div>
+              <div class="coach-gold-pinstripe"></div>
+              <div class="coach-garland-pine"><span class="pine-berry"></span><span class="pine-berry"></span><span class="pine-berry"></span></div>
+              <div class="coach-nameplate">Evergreen Dining Saloon</div>
+              <div class="coach-bogies-row">
+                <div class="bogie-truck"><div class="bogie-spring"></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div></div>
+                <div class="bogie-truck"><div class="bogie-spring"></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div></div>
+              </div>
+            </div>
+            <div class="gangway-bellows"></div>
+
+            <!-- CAR 4: COACH 1 — St. Paul's Royal Pullman (Deep Emerald & Gold Escutcheon) -->
+            <div class="train-car train-coach train-coach-pullman">
+              <div class="car-snow-roof"><div class="roof-icicles"></div></div>
+              <div class="coach-clerestory-strip"></div>
+              <div class="coach-windows-row">
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+                <div class="coach-window-realistic"><div class="window-curtain"></div><div class="window-glow"></div></div>
+              </div>
+              <div class="coach-gold-pinstripe"></div>
+              <div class="coach-garland-pine"><span class="pine-berry"></span><span class="pine-berry"></span><span class="pine-berry"></span></div>
+              <div class="coach-nameplate">St. Paul's Royal Pullman</div>
+              <div class="coach-bogies-row">
+                <div class="bogie-truck"><div class="bogie-spring"></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div></div>
+                <div class="bogie-truck"><div class="bogie-spring"></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div></div>
+              </div>
+            </div>
+            <div class="gangway-bellows"></div>
+
+            <!-- CAR 5: THE COAL TENDER (Deep Emerald & Gold Pinstripe with Coal Bunker) -->
+            <div class="train-car train-tender-realistic">
+              <div class="tender-coal-mound"></div>
+              <div class="tender-snow-crest"></div>
+              <div class="tender-body-panel">
+                <div class="tender-gold-crest">ST PAULS</div>
+              </div>
+              <div class="coach-bogies-row">
+                <div class="bogie-truck"><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div></div>
+                <div class="bogie-truck"><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div><div class="train-wheel"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div></div>
+              </div>
+            </div>
+            <div class="coupler-heavy"></div>
+
+            <!-- CAR 6 (FRONT): REALISTIC CHRISTMAS STEAM LOCOMOTIVE -->
+            <div class="train-locomotive-realistic">
+              <!-- Driver Cab in Rich Burgundy with Arched Windows & Firebox Glow -->
+              <div class="loco-cab-realistic">
+                <div class="cab-roof-curved"></div>
+                <div class="cab-window-brass">
+                  <div class="firebox-glow"></div>
+                </div>
+                <div class="cab-handrail-brass"></div>
+              </div>
+
+              <!-- High-Gloss Emerald Boiler with Champagne Gold Boiler Bands -->
+              <div class="loco-boiler-realistic">
+                <div class="boiler-specular-highlight"></div>
+                <div class="boiler-band b-band-1"></div>
+                <div class="boiler-band b-band-2"></div>
+                <div class="boiler-band b-band-3"></div>
+                <div class="boiler-band b-band-4"></div>
+                <div class="loco-steam-dome-brass"></div>
+                <div class="loco-sand-dome-brass"></div>
+                <div class="loco-bell-brass"></div>
+                <div class="running-board-steel"></div>
+              </div>
+
+              <!-- Smokebox with Flanged Victorian Chimney & Smoke Emitter -->
+              <div class="loco-smokebox-realistic">
+                <div class="smokebox-door-ring">
+                  <div class="smokebox-star-crest">★</div>
+                </div>
+                <div class="loco-chimney-flanged">
+                  <div class="chimney-brass-crown"></div>
+                  <div id="chimney-smoke-emitter" class="chimney-smoke-emitter"></div>
+                </div>
+              </div>
+
+              <!-- FRONT HEADLIGHT: Cast-Brass Headlamp physically attached to smokebox bracket (NEVER floating!) -->
+              <div class="loco-headlight-bracketed">
+                <div class="headlight-bracket-iron"></div>
+                <div class="headlight-brass-housing">
+                  <div class="headlight-lens-glass"></div>
+                </div>
+                <div class="headlight-beam-volumetric"></div>
+              </div>
+
+              <!-- Front Cowcatcher / Snowplow with Vertical Steel Bars -->
+              <div class="loco-cowcatcher-heavy">
+                <div class="cowcatcher-bars"></div>
+              </div>
+
+              <!-- Running Gear: Heavy Walschaerts Side Rods & Driving Wheels -->
+              <div class="loco-running-gear">
+                <div class="connecting-rod-assembly">
+                  <div class="main-side-rod"></div>
+                  <div class="piston-crosshead"></div>
+                </div>
+                <div class="wheels-deck">
+                  <!-- 3 Large Driving Wheels with Counterweights and Brass Rims -->
+                  <div class="train-wheel wheel-driver"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div><div class="counterweight"></div></div>
+                  <div class="train-wheel wheel-driver"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div><div class="counterweight"></div></div>
+                  <div class="train-wheel wheel-driver"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div><div class="counterweight"></div></div>
+                  <!-- 2 Front Pilot Wheels -->
+                  <div class="train-wheel wheel-pilot"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div>
+                  <div class="train-wheel wheel-pilot"><div class="wheel-spoke"></div><div class="wheel-spoke spoke-45"></div><div class="wheel-spoke spoke-90"></div><div class="wheel-spoke spoke-135"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Santa Claus Flying, Landing, Walking & Gift Throwing Cinematic Stage -->
+        <div id="santa-cinematic-stage" class="santa-cinematic-stage" aria-hidden="true">
+          <!-- Sky Flight Stage (Santa & Galloping Reindeer Team swooping through the night sky) -->
+          <div id="santa-flying-sleigh" class="santa-flying-sleigh">
+            <div class="sleigh-stardust-particles"></div>
+            <svg class="sleigh-reindeer-svg" viewBox="0 0 520 130" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <linearGradient id="sleighBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ef4444" />
+                  <stop offset="30%" stop-color="#dc2626" />
+                  <stop offset="65%" stop-color="#991b1b" />
+                  <stop offset="100%" stop-color="#450a0a" />
+                </linearGradient>
+                <linearGradient id="goldRunnerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#fffbeb" />
+                  <stop offset="35%" stop-color="#fef08a" />
+                  <stop offset="70%" stop-color="#fde047" />
+                  <stop offset="90%" stop-color="#eab308" />
+                  <stop offset="100%" stop-color="#b45309" />
+                </linearGradient>
+                <linearGradient id="reindeerFurGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#b45309" />
+                  <stop offset="35%" stop-color="#854d0e" />
+                  <stop offset="70%" stop-color="#713f12" />
+                  <stop offset="100%" stop-color="#3b1d07" />
+                </linearGradient>
+                <linearGradient id="reindeerUnderbellyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#fef3c7" />
+                  <stop offset="45%" stop-color="#fde68a" />
+                  <stop offset="80%" stop-color="#d97706" />
+                  <stop offset="100%" stop-color="#713f12" />
+                </linearGradient>
+                <linearGradient id="antlerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#fef08a" />
+                  <stop offset="40%" stop-color="#fde047" />
+                  <stop offset="75%" stop-color="#d97706" />
+                  <stop offset="100%" stop-color="#92400e" />
+                </linearGradient>
+                <filter id="rudolphGlow" x="-60%" y="-60%" width="220%" height="220%">
+                  <feGaussianBlur stdDeviation="5" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              <!-- Reindeer Team Leaping in Tandem across the Aurora Sky -->
+              <g class="reindeer-team-group">
+                <!-- Reindeer 4: Lead Reindeer Rudolph with glowing red nose -->
+                <g class="reindeer-unit reindeer-rudolph" transform="translate(410, 18)">
+                  <!-- Grand Multi-Branched 3D Antlers with Golden Highlight Tips -->
+                  <g class="reindeer-antlers">
+                    <path d="M38 24 C44 13, 53 7, 60 3 M46 13 C55 12, 62 8, 66 4 M48 19 C55 17, 64 15, 68 11 M38 24 C31 13, 24 8, 20 5 M33 16 C25 14, 18 10, 14 7" stroke="url(#antlerGrad)" stroke-width="2.6" stroke-linecap="round" fill="none" />
+                    <circle cx="60" cy="3" r="1.8" fill="#fffbeb" />
+                    <circle cx="66" cy="4" r="1.8" fill="#fffbeb" />
+                    <circle cx="68" cy="11" r="1.8" fill="#fffbeb" />
+                    <circle cx="20" cy="5" r="1.8" fill="#fffbeb" />
+                    <circle cx="14" cy="7" r="1.8" fill="#fffbeb" />
+                  </g>
+
+                  <!-- Anatomically Sculpted Reindeer Body & Arched Neck -->
+                  <path class="reindeer-silhouette" d="M12 50 C15 36, 26 34, 37 27 C42 23, 47 21, 53 25 C58 28, 54 34, 49 39 C45 45, 53 53, 51 63 C47 68, 38 65, 30 60 C23 64, 15 64, 12 56 Z" fill="url(#reindeerFurGrad)" />
+                  <!-- Throat Mane & Chest Highlight -->
+                  <path d="M36 33 C43 39, 45 47, 43 55 C37 49, 32 43, 36 33 Z" fill="url(#reindeerUnderbellyGrad)" opacity="0.75" />
+                  
+                  <!-- Fluid Galloping Legs: Forelegs & Hindlegs with Cloven Hooves -->
+                  <g class="reindeer-leg foreleg-l">
+                    <path d="M40 62 C46 72, 53 78, 57 86" stroke="#713f12" stroke-width="3.2" stroke-linecap="round" fill="none" />
+                    <path d="M57 86 L61 88" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg foreleg-r">
+                    <path d="M46 64 C54 70, 63 76, 69 82" stroke="#582d09" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <path d="M69 82 L73 84" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg hindleg-l">
+                    <path d="M14 56 C10 66, 6 74, 2 82" stroke="#713f12" stroke-width="3.2" stroke-linecap="round" fill="none" />
+                    <path d="M2 82 L5 85" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg hindleg-r">
+                    <path d="M20 58 C16 68, 14 78, 10 86" stroke="#582d09" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <path d="M10 86 L13 89" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+
+                  <!-- Reindeer Eye with Specular Catchlight & Ear -->
+                  <circle cx="48" cy="28" r="2.2" fill="#18181b" />
+                  <circle cx="49" cy="27.5" r="0.8" fill="#ffffff" />
+                  <path d="M41 24 Q 38 18, 42 15" stroke="#854d0e" stroke-width="2.2" fill="none" stroke-linecap="round" />
+
+                  <!-- Crimson Velvet Collar with Golden Jingle Bells -->
+                  <path d="M38 32 C42 36, 44 42, 43 46" stroke="#dc2626" stroke-width="3.4" stroke-linecap="round" fill="none" />
+                  <circle class="reindeer-jingle-bell" cx="40" cy="36" r="2.5" fill="#fde047" stroke="#b45309" stroke-width="0.8" />
+                  <circle class="reindeer-jingle-bell" cx="42" cy="42" r="2.5" fill="#fde047" stroke="#b45309" stroke-width="0.8" />
+                  
+                  <!-- Glowing Rudolph Red Nose with Pulsing Aura -->
+                  <circle class="rudolph-nose-glow" cx="54" cy="27" r="5.5" fill="#ef4444" filter="url(#rudolphGlow)" />
+                  <circle cx="53" cy="25.8" r="1.5" fill="#fecaca" />
+                </g>
+
+                <!-- Reindeer 3: Dasher -->
+                <g class="reindeer-unit" transform="translate(325, 26)">
+                  <g class="reindeer-antlers">
+                    <path d="M38 24 C44 13, 53 7, 60 3 M46 13 C55 12, 62 8, 66 4 M38 24 C31 13, 24 8, 20 5 M33 16 C25 14, 18 10, 14 7" stroke="url(#antlerGrad)" stroke-width="2.4" stroke-linecap="round" fill="none" />
+                    <circle cx="60" cy="3" r="1.6" fill="#fffbeb" />
+                    <circle cx="66" cy="4" r="1.6" fill="#fffbeb" />
+                    <circle cx="20" cy="5" r="1.6" fill="#fffbeb" />
+                  </g>
+                  <path class="reindeer-silhouette" d="M12 50 C15 36, 26 34, 37 27 C42 23, 47 21, 53 25 C58 28, 54 34, 49 39 C45 45, 53 53, 51 63 C47 68, 38 65, 30 60 C23 64, 15 64, 12 56 Z" fill="url(#reindeerFurGrad)" />
+                  <path d="M36 33 C43 39, 45 47, 43 55 C37 49, 32 43, 36 33 Z" fill="url(#reindeerUnderbellyGrad)" opacity="0.7" />
+                  
+                  <g class="reindeer-leg foreleg-l">
+                    <path d="M40 62 C46 72, 53 78, 57 86" stroke="#713f12" stroke-width="3.2" stroke-linecap="round" fill="none" />
+                    <path d="M57 86 L61 88" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg foreleg-r">
+                    <path d="M46 64 C54 70, 63 76, 69 82" stroke="#582d09" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <path d="M69 82 L73 84" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg hindleg-l">
+                    <path d="M14 56 C10 66, 6 74, 2 82" stroke="#713f12" stroke-width="3.2" stroke-linecap="round" fill="none" />
+                    <path d="M2 82 L5 85" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg hindleg-r">
+                    <path d="M20 58 C16 68, 14 78, 10 86" stroke="#582d09" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <path d="M10 86 L13 89" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+
+                  <circle cx="48" cy="28" r="2.2" fill="#18181b" />
+                  <circle cx="49" cy="27.5" r="0.8" fill="#ffffff" />
+                  <path d="M38 32 C42 36, 44 42, 43 46" stroke="#dc2626" stroke-width="3.2" stroke-linecap="round" fill="none" />
+                  <circle class="reindeer-jingle-bell" cx="41" cy="38" r="2.5" fill="#fde047" stroke="#b45309" stroke-width="0.8" />
+                  <circle cx="53" cy="27" r="2.5" fill="#1c1917" />
+                </g>
+
+                <!-- Reindeer 2: Prancer -->
+                <g class="reindeer-unit" transform="translate(240, 34)">
+                  <g class="reindeer-antlers">
+                    <path d="M38 24 C44 13, 53 7, 60 3 M46 13 C55 12, 62 8, 66 4 M38 24 C31 13, 24 8, 20 5 M33 16 C25 14, 18 10, 14 7" stroke="url(#antlerGrad)" stroke-width="2.4" stroke-linecap="round" fill="none" />
+                    <circle cx="60" cy="3" r="1.6" fill="#fffbeb" />
+                    <circle cx="66" cy="4" r="1.6" fill="#fffbeb" />
+                    <circle cx="20" cy="5" r="1.6" fill="#fffbeb" />
+                  </g>
+                  <path class="reindeer-silhouette" d="M12 50 C15 36, 26 34, 37 27 C42 23, 47 21, 53 25 C58 28, 54 34, 49 39 C45 45, 53 53, 51 63 C47 68, 38 65, 30 60 C23 64, 15 64, 12 56 Z" fill="url(#reindeerFurGrad)" />
+                  <path d="M36 33 C43 39, 45 47, 43 55 C37 49, 32 43, 36 33 Z" fill="url(#reindeerUnderbellyGrad)" opacity="0.7" />
+                  
+                  <g class="reindeer-leg foreleg-l">
+                    <path d="M40 62 C46 72, 53 78, 57 86" stroke="#713f12" stroke-width="3.2" stroke-linecap="round" fill="none" />
+                    <path d="M57 86 L61 88" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg foreleg-r">
+                    <path d="M46 64 C54 70, 63 76, 69 82" stroke="#582d09" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <path d="M69 82 L73 84" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg hindleg-l">
+                    <path d="M14 56 C10 66, 6 74, 2 82" stroke="#713f12" stroke-width="3.2" stroke-linecap="round" fill="none" />
+                    <path d="M2 82 L5 85" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg hindleg-r">
+                    <path d="M20 58 C16 68, 14 78, 10 86" stroke="#582d09" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <path d="M10 86 L13 89" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+
+                  <circle cx="48" cy="28" r="2.2" fill="#18181b" />
+                  <circle cx="49" cy="27.5" r="0.8" fill="#ffffff" />
+                  <path d="M38 32 C42 36, 44 42, 43 46" stroke="#dc2626" stroke-width="3.2" stroke-linecap="round" fill="none" />
+                  <circle class="reindeer-jingle-bell" cx="41" cy="38" r="2.5" fill="#fde047" stroke="#b45309" stroke-width="0.8" />
+                  <circle cx="53" cy="27" r="2.5" fill="#1c1917" />
+                </g>
+
+                <!-- Reindeer 1 (Closest to Sleigh): Comet -->
+                <g class="reindeer-unit" transform="translate(155, 42)">
+                  <g class="reindeer-antlers">
+                    <path d="M38 24 C44 13, 53 7, 60 3 M46 13 C55 12, 62 8, 66 4 M38 24 C31 13, 24 8, 20 5 M33 16 C25 14, 18 10, 14 7" stroke="url(#antlerGrad)" stroke-width="2.4" stroke-linecap="round" fill="none" />
+                    <circle cx="60" cy="3" r="1.6" fill="#fffbeb" />
+                    <circle cx="66" cy="4" r="1.6" fill="#fffbeb" />
+                    <circle cx="20" cy="5" r="1.6" fill="#fffbeb" />
+                  </g>
+                  <path class="reindeer-silhouette" d="M12 50 C15 36, 26 34, 37 27 C42 23, 47 21, 53 25 C58 28, 54 34, 49 39 C45 45, 53 53, 51 63 C47 68, 38 65, 30 60 C23 64, 15 64, 12 56 Z" fill="url(#reindeerFurGrad)" />
+                  <path d="M36 33 C43 39, 45 47, 43 55 C37 49, 32 43, 36 33 Z" fill="url(#reindeerUnderbellyGrad)" opacity="0.7" />
+                  
+                  <g class="reindeer-leg foreleg-l">
+                    <path d="M40 62 C46 72, 53 78, 57 86" stroke="#713f12" stroke-width="3.2" stroke-linecap="round" fill="none" />
+                    <path d="M57 86 L61 88" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg foreleg-r">
+                    <path d="M46 64 C54 70, 63 76, 69 82" stroke="#582d09" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <path d="M69 82 L73 84" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg hindleg-l">
+                    <path d="M14 56 C10 66, 6 74, 2 82" stroke="#713f12" stroke-width="3.2" stroke-linecap="round" fill="none" />
+                    <path d="M2 82 L5 85" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+                  <g class="reindeer-leg hindleg-r">
+                    <path d="M20 58 C16 68, 14 78, 10 86" stroke="#582d09" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <path d="M10 86 L13 89" stroke="#18181b" stroke-width="4.2" stroke-linecap="round" />
+                  </g>
+
+                  <circle cx="48" cy="28" r="2.2" fill="#18181b" />
+                  <circle cx="49" cy="27.5" r="0.8" fill="#ffffff" />
+                  <path d="M38 32 C42 36, 44 42, 43 46" stroke="#dc2626" stroke-width="3.2" stroke-linecap="round" fill="none" />
+                  <circle class="reindeer-jingle-bell" cx="41" cy="38" r="2.5" fill="#fde047" stroke="#b45309" stroke-width="0.8" />
+                  <circle cx="53" cy="27" r="2.5" fill="#1c1917" />
+                </g>
+              </g>
+
+              <!-- Golden Harness Reins & Traces (Anchored directly to the Sleigh & Reindeer) -->
+              <!-- Upper reins from Santa's hands to each reindeer's bit -->
+              <path d="M92 68 Q 260 78, 452 44" stroke="url(#goldRunnerGrad)" stroke-width="2.2" fill="none" />
+              <!-- Lower draft traces connecting sleigh runners directly to reindeer collars -->
+              <path d="M124 88 Q 270 95, 448 59" stroke="#f59e0b" stroke-width="2.4" stroke-dasharray="6,2" fill="none" />
+
+              <!-- Ornate Golden-Trimmed Royal Sleigh -->
+              <g class="flying-sleigh-vehicle">
+                <!-- Large overflowing velvet gift sack in sleigh boot -->
+                <ellipse cx="48" cy="65" rx="23" ry="21" fill="#78350f" stroke="#b45309" stroke-width="2.2" />
+                <path d="M42 47 Q 48 43, 56 49 Q 48 55, 42 47" fill="#fde047" stroke="#b45309" stroke-width="1.8" />
+                <!-- Wrapped gifts peeking out -->
+                <rect x="36" y="42" width="12" height="12" rx="1.5" fill="#047857" stroke="#fef08a" stroke-width="1" transform="rotate(-10 36 42)" />
+                <rect x="52" y="40" width="11" height="12" rx="1.5" fill="#dc2626" stroke="#ffffff" stroke-width="1" transform="rotate(12 52 40)" />
+                
+                <!-- Sleigh Body (Crimson velvet with gold filigree) -->
+                <path d="M18 90 C32 98, 68 100, 108 94 C126 90, 138 82, 134 72 C130 64, 114 62, 98 66 C82 70, 58 62, 45 71 C32 80, 22 86, 18 90 Z" fill="url(#sleighBodyGrad)" stroke="#fef08a" stroke-width="2.4" />
+                <path d="M36 82 Q 72 94, 116 80" stroke="#fde047" stroke-width="2.4" fill="none" />
+                <circle cx="36" cy="82" r="3.2" fill="#fde047" stroke="#b45309" stroke-width="0.8" />
+                <circle cx="116" cy="80" r="3.2" fill="#fde047" stroke="#b45309" stroke-width="0.8" />
+
+                <!-- Curved Golden Runners with Front Spiral Scroll connected to harness -->
+                <path d="M10 104 C30 106, 90 106, 128 100 C142 98, 150 90, 146 82 M26 104 L38 90 M76 104 L86 90 M116 101 L122 89" stroke="url(#goldRunnerGrad)" stroke-width="4.2" stroke-linecap="round" fill="none" />
+                <!-- Runner Front Curl connecting directly to reins -->
+                <path d="M146 82 C148 75, 144 71, 138 71" stroke="url(#goldRunnerGrad)" stroke-width="3.2" stroke-linecap="round" fill="none" />
+
+                <!-- Santa Seated inside Sleigh holding Reins (High-Detail 3D Velvet & Fur) -->
+                <g class="santa-in-sleigh" transform="translate(74, 46)">
+                  <!-- Velvet Torso -->
+                  <path d="M0 26 C2 14, 20 14, 22 26 Z" fill="url(#sleighBodyGrad)" stroke="#fef08a" stroke-width="1.4" />
+                  <!-- Plush Fur Hem -->
+                  <rect x="0" y="24" width="22" height="4.5" rx="2.2" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8" />
+                  <!-- Warm Head & Friendly Face -->
+                  <circle cx="11" cy="15" r="8.5" fill="#fed7aa" />
+                  <ellipse cx="7" cy="15" rx="2.5" ry="1.8" fill="#f87171" opacity="0.75" />
+                  <ellipse cx="15" cy="15" rx="2.5" ry="1.8" fill="#f87171" opacity="0.75" />
+                  <circle cx="9" cy="13.5" r="1.1" fill="#1e293b" />
+                  <circle cx="13" cy="13.5" r="1.1" fill="#1e293b" />
+                  <circle cx="9.3" cy="13.2" r="0.4" fill="#ffffff" />
+                  <circle cx="13.3" cy="13.2" r="0.4" fill="#ffffff" />
+                  <!-- Sculpted White Beard & Mustache -->
+                  <path d="M4 16 C5 29, 17 29, 18 16 Z" fill="#ffffff" filter="drop-shadow(0 2px 3px rgba(0,0,0,0.35))" />
+                  <path d="M7 16 Q 11 19, 15 16" stroke="#f1f5f9" stroke-width="1.8" fill="none" />
+                  <!-- Red Velvet Hat drooping with fluffy pompom -->
+                  <path d="M3 13 C5 3, 19 3, 21 13 Z" fill="#dc2626" />
+                  <rect x="2" y="11" width="20" height="3.5" rx="1.8" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.6" />
+                  <circle cx="22" cy="8.5" r="3.2" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.6" />
+                </g>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Ground Landing & Walking Santa Actor (Near Platform) -->
+          <div id="santa-ground-actor" class="santa-ground-actor">
+            <!-- Parked Sleigh & Reindeer resting gracefully in the snow -->
+            <div class="landed-sleigh-parked">
+              <svg viewBox="0 0 280 145" style="width: 100%; height: 100%;" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <linearGradient id="parkedSleighGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ef4444" />
+                    <stop offset="40%" stop-color="#dc2626" />
+                    <stop offset="75%" stop-color="#881337" />
+                    <stop offset="100%" stop-color="#450a0a" />
+                  </linearGradient>
+                  <linearGradient id="parkedGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#fffbeb" />
+                    <stop offset="35%" stop-color="#fef08a" />
+                    <stop offset="70%" stop-color="#fde047" />
+                    <stop offset="100%" stop-color="#b45309" />
+                  </linearGradient>
+                  <linearGradient id="groundReindeerFur" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#b45309" />
+                    <stop offset="35%" stop-color="#854d0e" />
+                    <stop offset="70%" stop-color="#713f12" />
+                    <stop offset="100%" stop-color="#3b1d07" />
+                  </linearGradient>
+                  <linearGradient id="groundReindeerMane" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#fef3c7" />
+                    <stop offset="50%" stop-color="#fde68a" />
+                    <stop offset="100%" stop-color="#a16207" />
+                  </linearGradient>
+                </defs>
+
+                <!-- Resting Reindeer Team in Snow with Grand Branching Antlers -->
+                <g class="parked-reindeer-resting">
+                  <!-- Reindeer 1 resting in snow with gentle breathing movement -->
+                  <path d="M175 106 C182 91, 198 88, 215 76 C223 70, 235 70, 239 79 C243 85, 233 94, 229 102 C227 108, 237 116, 235 124 C227 130, 206 126, 195 120 Z" fill="url(#groundReindeerFur)" />
+                  <!-- Throat Mane & Soft Chest Highlight -->
+                  <path d="M210 82 C218 88, 222 96, 218 104 C212 98, 207 92, 210 82 Z" fill="url(#groundReindeerMane)" opacity="0.8" />
+                  
+                  <!-- Majestic Branched 3D Antlers with Ivory-Gold Tips -->
+                  <g class="parked-reindeer-head">
+                    <path d="M220 73 C225 56, 239 48, 245 42 M228 60 C237 58, 244 52, 248 46 M222 73 C216 58, 209 52, 203 46 M218 62 C209 60, 203 54, 197 50" stroke="url(#parkedGoldGrad)" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <circle cx="245" cy="42" r="1.8" fill="#fffbeb" />
+                    <circle cx="248" cy="46" r="1.8" fill="#fffbeb" />
+                    <circle cx="203" cy="46" r="1.8" fill="#fffbeb" />
+                    <circle cx="197" cy="50" r="1.8" fill="#fffbeb" />
+                    
+                    <!-- Reindeer Eye with Catchlight & Ear -->
+                    <circle cx="233" cy="77" r="2.8" fill="#18181b" />
+                    <circle cx="234" cy="76.2" r="1" fill="#ffffff" />
+                    <path d="M225 73 Q 220 66, 225 62" stroke="#854d0e" stroke-width="2.8" fill="none" stroke-linecap="round" />
+
+                    <!-- Gold Jingle Bell Collar with Shimmering Bells -->
+                    <path d="M218 83 C222 87, 226 93, 224 97" stroke="#dc2626" stroke-width="3.4" fill="none" stroke-linecap="round" />
+                    <circle class="reindeer-jingle-bell" cx="221" cy="89" r="2.8" fill="#fde047" stroke="#b45309" stroke-width="0.8" />
+                  </g>
+
+                  <!-- Golden Harness Reins draped gracefully into sleigh runner -->
+                  <path d="M168 116 Q 194 122, 220 93" stroke="#f59e0b" stroke-width="2.2" fill="none" stroke-dasharray="4,2" />
+                </g>
+                
+                <!-- Big Velvet Gift Sack in Sleigh Boot -->
+                <ellipse cx="72" cy="74" rx="35" ry="31" fill="#78350f" stroke="#b45309" stroke-width="2.4" />
+                <path d="M64 47 Q 74 39, 86 49 Q 74 59, 64 47" fill="#fde047" stroke="#b45309" stroke-width="2.2" />
+                <!-- Peek of wrapped presents -->
+                <rect x="52" y="37" width="17" height="19" rx="2" fill="#047857" stroke="#fef08a" stroke-width="1.4" transform="rotate(-12 52 37)" />
+                <rect x="74" y="35" width="19" height="17" rx="2" fill="#dc2626" stroke="#ffffff" stroke-width="1.4" transform="rotate(14 74 35)" />
+                <circle cx="68" cy="33" r="2.5" fill="#fef08a" />
+
+                <!-- Parked Sleigh Body with Royal Christmas Filigree -->
+                <path d="M24 105 C42 118, 98 122, 148 110 C176 104, 192 92, 186 76 C178 64, 154 62, 132 68 C110 74, 78 64, 58 78 C40 90, 28 98, 24 105 Z" fill="url(#parkedSleighGrad)" stroke="#fef08a" stroke-width="3" />
+                <path d="M48 96 Q 96 110, 156 94" stroke="#fde047" stroke-width="2.8" fill="none" />
+                <circle cx="48" cy="96" r="3.8" fill="#fde047" stroke="#b45309" stroke-width="0.8" />
+                <circle cx="156" cy="94" r="3.8" fill="#fde047" stroke="#b45309" stroke-width="0.8" />
+
+                <!-- Golden Sleigh Runners resting firmly in snowdrift -->
+                <path d="M12 126 C42 130, 130 130, 178 120 C196 116, 210 106, 206 96 M36 126 L50 108 M106 126 L118 108 M162 120 L170 105" stroke="url(#parkedGoldGrad)" stroke-width="5" stroke-linecap="round" fill="none" />
+                <!-- Front Runner Curl -->
+                <path d="M206 96 C208 87, 202 83, 196 83" stroke="url(#parkedGoldGrad)" stroke-width="3.8" stroke-linecap="round" fill="none" />
+                
+                <!-- Glistening Snowdrift mound around sleigh -->
+                <ellipse cx="115" cy="132" rx="108" ry="15" fill="#ffffff" opacity="0.95" filter="blur(2px)" />
+              </svg>
+            </div>
+
+            <!-- Realistic Disney-Quality Large Standing & Walking Santa -->
+            <div id="santa-figure" class="santa-figure">
+              <div class="santa-character-body">
+                <!-- Rich SVG Illustration of Santa Claus (Disney-Quality Proportions, Detailed Velvet, Natural Beard & Forward Boots) -->
+                <svg viewBox="0 0 230 345" style="width: 100%; height: 100%; overflow: visible;" preserveAspectRatio="xMidYMid meet">
+                  <defs>
+                    <radialGradient id="faceGrad" cx="50%" cy="38%" r="56%">
+                      <stop offset="0%" stop-color="#fff8f3" />
+                      <stop offset="60%" stop-color="#fed7aa" />
+                      <stop offset="90%" stop-color="#fdba74" />
+                      <stop offset="100%" stop-color="#f472b6" stop-opacity="0.6" />
+                    </radialGradient>
+                    <radialGradient id="cheeksGrad" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="#f87171" stop-opacity="0.9" />
+                      <stop offset="65%" stop-color="#fb7185" stop-opacity="0.4" />
+                      <stop offset="100%" stop-color="#f87171" stop-opacity="0" />
+                    </radialGradient>
+                    <linearGradient id="suitVelvet" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ef4444" />
+                      <stop offset="25%" stop-color="#dc2626" />
+                      <stop offset="55%" stop-color="#b91c1c" />
+                      <stop offset="85%" stop-color="#881337" />
+                      <stop offset="100%" stop-color="#4c0519" />
+                    </linearGradient>
+                    <linearGradient id="suitHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#fca5a5" stop-opacity="0.4" />
+                      <stop offset="50%" stop-color="#ef4444" stop-opacity="0.1" />
+                      <stop offset="100%" stop-color="#4c0519" stop-opacity="0.5" />
+                    </linearGradient>
+                    <linearGradient id="furTrimGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" />
+                      <stop offset="45%" stop-color="#f8fafc" />
+                      <stop offset="80%" stop-color="#f1f5f9" />
+                      <stop offset="100%" stop-color="#cbd5e1" />
+                    </linearGradient>
+                    <linearGradient id="beardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" />
+                      <stop offset="50%" stop-color="#f8fafc" />
+                      <stop offset="85%" stop-color="#e2e8f0" />
+                      <stop offset="100%" stop-color="#cbd5e1" />
+                    </linearGradient>
+                    <linearGradient id="goldBuckleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#fffbeb" />
+                      <stop offset="35%" stop-color="#fef08a" />
+                      <stop offset="65%" stop-color="#fde047" />
+                      <stop offset="90%" stop-color="#eab308" />
+                      <stop offset="100%" stop-color="#b45309" />
+                    </linearGradient>
+                    <radialGradient id="sackGrad" cx="35%" cy="35%" r="65%">
+                      <stop offset="0%" stop-color="#a16207" />
+                      <stop offset="55%" stop-color="#78350f" />
+                      <stop offset="85%" stop-color="#451a03" />
+                      <stop offset="100%" stop-color="#1c0a00" />
+                    </radialGradient>
+                    <linearGradient id="bootLeather" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#3f3f46" />
+                      <stop offset="30%" stop-color="#27272a" />
+                      <stop offset="70%" stop-color="#18181b" />
+                      <stop offset="100%" stop-color="#09090b" />
+                    </linearGradient>
+                  </defs>
+
+                  <!-- Ground Contact Shadow on Snow -->
+                  <ellipse cx="115" cy="336" rx="68" ry="11" fill="#0f172a" opacity="0.4" filter="blur(4px)" />
+
+                  <!-- 1. Shoulder Gift Sack Overflowing with Presents -->
+                  <g class="santa-shoulder-sack" transform="translate(18, 88)">
+                    <ellipse cx="45" cy="58" rx="44" ry="56" fill="url(#sackGrad)" stroke="#b45309" stroke-width="2.6" filter="drop-shadow(-4px 8px 14px rgba(0,0,0,0.55))" />
+                    <!-- Festive Wrapped Presents peeking out of sack -->
+                    <rect x="23" y="5" width="28" height="30" rx="3.5" fill="#047857" stroke="#fef08a" stroke-width="2" transform="rotate(-15 23 5)" />
+                    <line x1="37" y1="5" x2="37" y2="35" stroke="#fde047" stroke-width="2.5" transform="rotate(-15 23 5)" />
+                    <rect x="42" y="9" width="26" height="26" rx="2.5" fill="#dc2626" stroke="#ffffff" stroke-width="2" transform="rotate(12 42 9)" />
+                    <line x1="55" y1="9" x2="55" y2="35" stroke="#ffffff" stroke-width="2.5" transform="rotate(12 42 9)" />
+                    <!-- Classic Striped Candy Cane peeking out -->
+                    <path d="M62 4 C66 -5, 77 -5, 79 4 L79 28" stroke="#ef4444" stroke-width="5" stroke-linecap="round" fill="none" />
+                    <path d="M62 4 C66 -5, 77 -5, 79 4 L79 28" stroke="#ffffff" stroke-width="5" stroke-dasharray="3.5,3.5" stroke-linecap="round" fill="none" />
+                    <!-- Sack Golden Braided Rope Tie with Tassels -->
+                    <path d="M25 32 C40 24, 60 24, 71 32" stroke="url(#goldBuckleGrad)" stroke-width="5" fill="none" />
+                    <circle cx="48" cy="31" r="4.5" fill="#fde047" stroke="#b45309" stroke-width="1.2" />
+                  </g>
+
+                  <!-- 2. Anatomically Correct Walking Legs & Forward-Facing Boots -->
+                  <!-- Both boots face FORWARD in the direction of walking (to the right) -->
+                  <g class="santa-legs-walking">
+                    <!-- Left Leg (Background / 3/4 perspective, shaded slightly darker) -->
+                    <g class="santa-leg leg-l">
+                      <!-- Trousers with knee bend curve and velvet fold -->
+                      <path d="M82 245 C80 262, 82 278, 84 286 L108 286 C110 278, 108 262, 106 245 Z" fill="#7f1d1d" />
+                      <path d="M84 252 C88 265, 96 274, 98 286" stroke="#580505" stroke-width="2" fill="none" />
+                      <!-- Plush Volumetric Fur Boot Cuff -->
+                      <rect class="boot-cuff-fur" x="78" y="279" width="35" height="15" rx="7.5" fill="url(#furTrimGrad)" stroke="#cbd5e1" stroke-width="1.4" filter="drop-shadow(0 2px 3px rgba(0,0,0,0.25))" />
+                      <!-- Sculpted Black Leather Boot facing FORWARD-RIGHT -->
+                      <path class="boot-leather" d="M80 292 C78 298, 76 320, 78 328 C80 330, 94 330, 108 330 C118 330, 126 328, 126 322 C126 316, 114 306, 110 292 Z" fill="url(#bootLeather)" />
+                      <!-- Toe Luster Highlight -->
+                      <path d="M106 322 C114 322, 122 320, 122 316" stroke="#71717a" stroke-width="2.2" stroke-linecap="round" fill="none" />
+                      <!-- Heavy Tread Sole -->
+                      <path d="M78 328 L126 328" stroke="#09090b" stroke-width="4.5" stroke-linecap="round" />
+                      <!-- Golden Outer Ankle Buckle -->
+                      <rect x="90" y="304" width="13.5" height="11.5" rx="2" fill="none" stroke="url(#goldBuckleGrad)" stroke-width="2.4" />
+                    </g>
+
+                    <!-- Right Leg (Foreground / Lead leg in warm holiday light) -->
+                    <g class="santa-leg leg-r">
+                      <!-- Rich Crimson Velvet Trousers with fabric sheen -->
+                      <path d="M124 245 C122 262, 124 278, 126 286 L152 286 C154 278, 152 262, 150 245 Z" fill="#b91c1c" />
+                      <path d="M127 252 C132 265, 140 274, 142 286" stroke="#dc2626" stroke-width="2.2" fill="none" opacity="0.6" />
+                      <!-- Plush Volumetric Fur Boot Cuff -->
+                      <rect class="boot-cuff-fur" x="120" y="279" width="37" height="15" rx="7.5" fill="url(#furTrimGrad)" stroke="#cbd5e1" stroke-width="1.4" filter="drop-shadow(0 2px 3px rgba(0,0,0,0.25))" />
+                      <!-- Sculpted Leather Boot Facing FORWARD-RIGHT with prominent toe box -->
+                      <path class="boot-leather" d="M122 292 C120 298, 118 320, 120 328 C122 330, 138 330, 154 330 C166 330, 174 328, 174 322 C174 316, 160 306, 154 292 Z" fill="url(#bootLeather)" />
+                      <!-- Toe Cap Polish Highlight -->
+                      <path d="M150 322 C160 322, 170 320, 170 316" stroke="#a1a1aa" stroke-width="2.4" stroke-linecap="round" fill="none" />
+                      <!-- Sturdy Black Sole -->
+                      <path d="M120 328 L174 328" stroke="#09090b" stroke-width="4.8" stroke-linecap="round" />
+                      <!-- Golden Outer Ankle Buckle with Tongue -->
+                      <rect x="134" y="304" width="14.5" height="11.5" rx="2" fill="none" stroke="url(#goldBuckleGrad)" stroke-width="2.6" />
+                      <line x1="141" y1="309.5" x2="148" y2="309.5" stroke="#fef08a" stroke-width="2.2" stroke-linecap="round" />
+                    </g>
+                  </g>
+
+                  <!-- 3. Velvet Coat with Fur Trim, Placket & Leather Belt -->
+                  <g class="santa-coat-velvet">
+                    <!-- Velvet Body with realistic flare and 3D shadow folds -->
+                    <path d="M68 125 C56 165, 54 215, 58 256 C92 262, 144 262, 178 256 C182 215, 180 165, 168 125 Z" fill="url(#suitVelvet)" stroke="#7f1d1d" stroke-width="2.2" filter="drop-shadow(0 9px 18px rgba(0,0,0,0.48))" />
+                    <!-- Velvet Sheen Overlay -->
+                    <path d="M72 135 C64 175, 62 215, 66 250 C78 253, 90 253, 100 250 C94 215, 92 175, 98 135 Z" fill="url(#suitHighlight)" opacity="0.35" />
+                    
+                    <!-- Plush White Bottom Fur Hem (Volumetric scallops) -->
+                    <path class="coat-bottom-fur" d="M53 247 C88 259, 148 259, 183 247 C187 261, 181 273, 176 273 C140 279, 96 279, 61 273 C56 273, 51 261, 53 247 Z" fill="url(#furTrimGrad)" stroke="#cbd5e1" stroke-width="1.8" filter="drop-shadow(0 3px 6px rgba(0,0,0,0.2))" />
+                    <!-- Center Fur Placket -->
+                    <path class="coat-center-fur" d="M115 125 L115 252" stroke="url(#furTrimGrad)" stroke-width="20" stroke-linecap="round" />
+                    <!-- Gold Coat Buttons with Diamond Luster -->
+                    <circle cx="115" cy="155" r="3.4" fill="url(#goldBuckleGrad)" stroke="#b45309" stroke-width="0.8" />
+                    <circle cx="115" cy="225" r="3.4" fill="url(#goldBuckleGrad)" stroke="#b45309" stroke-width="0.8" />
+                    <!-- Plush Fur Shawl Collar -->
+                    <path class="coat-fur-collar" d="M84 125 C100 115, 138 115, 154 125" stroke="url(#furTrimGrad)" stroke-width="18" stroke-linecap="round" fill="none" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.2))" />
+
+                    <!-- Wide Polished Black Leather Belt with Golden Buckle -->
+                    <g class="santa-belt-leather">
+                      <rect x="57" y="187" width="122" height="25" rx="4" fill="url(#bootLeather)" stroke="#09090b" stroke-width="1.8" filter="drop-shadow(0 3px 5px rgba(0,0,0,0.4))" />
+                      <!-- Belt Leather Gloss Highlight -->
+                      <line x1="60" y1="192" x2="176" y2="192" stroke="#52525b" stroke-width="1.5" opacity="0.6" />
+                      <!-- Golden Belt Buckle -->
+                      <rect class="belt-buckle-gold" x="99" y="180" width="34" height="39" rx="5.5" fill="none" stroke="url(#goldBuckleGrad)" stroke-width="5.5" filter="drop-shadow(0 2px 6px rgba(0,0,0,0.55))" />
+                      <!-- Buckle Tongue -->
+                      <line x1="116" y1="200" x2="129" y2="200" stroke="#fffbeb" stroke-width="4.5" stroke-linecap="round" />
+                    </g>
+                  </g>
+
+                  <!-- 4. Left Arm (Holding Sack Strap with green mitten) -->
+                  <g class="santa-arm arm-left">
+                    <path d="M75 132 C58 154, 51 182, 65 204" stroke="url(#suitVelvet)" stroke-width="26" stroke-linecap="round" />
+                    <!-- Fur Sleeve Cuff -->
+                    <rect x="51" y="191" width="28" height="13" rx="6.5" fill="url(#furTrimGrad)" stroke="#cbd5e1" stroke-width="1.2" />
+                    <!-- Forest Green Velvet Mitten with Gold Piping -->
+                    <circle class="mitten-green" cx="64" cy="208" r="11.5" fill="#047857" stroke="url(#goldBuckleGrad)" stroke-width="2" />
+                  </g>
+
+                  <!-- 5. Santa's Warm, Friendly Face & Flowing Multi-Layered Beard -->
+                  <g class="santa-face-realistic">
+                    <!-- Head Base with healthy porcelain/peach skin -->
+                    <ellipse cx="118" cy="84" rx="31" ry="33" fill="url(#faceGrad)" />
+                    
+                    <!-- Cheerful Airbrushed Rosy Cheeks -->
+                    <ellipse class="santa-cheeks" cx="99" cy="88" rx="11" ry="8" fill="url(#cheeksGrad)" />
+                    <ellipse class="santa-cheeks" cx="137" cy="88" rx="11" ry="8" fill="url(#cheeksGrad)" />
+                    
+                    <!-- Kind Twinkling Eyes & Crow's Feet Laugh Lines (Disneyland Standard) -->
+                    <g class="santa-eyes">
+                      <ellipse cx="104" cy="80" rx="4.2" ry="4.8" fill="#1e293b" />
+                      <circle cx="103.2" cy="78.2" r="1.6" fill="#ffffff" />
+                      <circle cx="106" cy="81.5" r="0.8" fill="#93c5fd" />
+                      <path d="M95 80 Q 104 74, 113 80" stroke="#713f12" stroke-width="1.6" fill="none" stroke-linecap="round" />
+                      <!-- Gentle laugh lines -->
+                      <path d="M93 78 L88 76 M93 82 L87 83 M94 85 L90 88" stroke="#d97706" stroke-width="1.1" stroke-linecap="round" opacity="0.65" />
+                      
+                      <ellipse cx="132" cy="80" rx="4.2" ry="4.8" fill="#1e293b" />
+                      <circle cx="131.2" cy="78.2" r="1.6" fill="#ffffff" />
+                      <circle cx="134" cy="81.5" r="0.8" fill="#93c5fd" />
+                      <path d="M123 80 Q 132 74, 141 80" stroke="#713f12" stroke-width="1.6" fill="none" stroke-linecap="round" />
+                      <path d="M143 78 L148 76 M143 82 L149 83 M142 85 L146 88" stroke="#d97706" stroke-width="1.1" stroke-linecap="round" opacity="0.65" />
+                    </g>
+
+                    <!-- Sculpted Rosy Button Nose with Gentle Highlight -->
+                    <ellipse cx="118" cy="86" rx="7" ry="6" fill="#fca5a5" />
+                    <ellipse cx="117" cy="84.5" r="2" fill="#fff1f2" opacity="0.75" />
+
+                    <!-- Arching Snow-White Bushy Eyebrows with Fine Hair Strands -->
+                    <path d="M94 72 Q 105 63, 114 73" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" fill="none" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.25))" />
+                    <path d="M96 70 Q 105 62, 112 71" stroke="#f1f5f9" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                    <path d="M122 73 Q 131 63, 142 72" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" fill="none" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.25))" />
+                    <path d="M124 71 Q 131 62, 140 70" stroke="#f1f5f9" stroke-width="2.5" stroke-linecap="round" fill="none" />
+
+                    <!-- Gentle Warm Smile with Smiling Lip Creases -->
+                    <path d="M108 96 Q 118 104, 128 96" stroke="#991b1b" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <path d="M106 95 Q 108 97, 107 99" stroke="#d97706" stroke-width="1.2" stroke-linecap="round" opacity="0.5" />
+                    <path d="M130 95 Q 128 97, 129 99" stroke="#d97706" stroke-width="1.2" stroke-linecap="round" opacity="0.5" />
+
+                    <!-- Majestic Multi-Layered Flowing White Beard (Fuller, Softer & Volumetric) -->
+                    <g class="santa-flowing-beard">
+                      <!-- Base Ambient Shadow Layer -->
+                      <path d="M87 88 C74 116, 80 174, 118 189 C156 174, 162 116, 149 88 C143 101, 93 101, 87 88 Z" fill="url(#beardGrad)" filter="drop-shadow(0 8px 16px rgba(0,0,0,0.32))" />
+                      <!-- Sculpted Mid-Layer Beard Waves -->
+                      <path d="M95 114 C89 142, 107 177, 118 186 C129 177, 147 142, 141 114 C133 129, 103 129, 95 114 Z" fill="#ffffff" opacity="0.9" />
+                      <!-- Wavy Beard Texture Locks -->
+                      <path d="M102 130 C100 152, 112 172, 118 180" stroke="#f1f5f9" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                      <path d="M134 130 C136 152, 124 172, 118 180" stroke="#f1f5f9" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                      <!-- Full Sweeping Handlebar Mustache with Delicately Curled Tips -->
+                      <path d="M118 92 C105 84, 84 89, 79 101 C94 107, 111 99, 118 94 C125 99, 142 107, 157 101 C152 89, 131 84, 118 92 Z" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" filter="drop-shadow(0 3px 5px rgba(0,0,0,0.2))" />
+                      <path d="M82 100 Q 77 103, 76 98 Q 80 94, 86 94" stroke="#f8fafc" stroke-width="1.8" fill="none" stroke-linecap="round" />
+                      <path d="M154 100 Q 159 103, 160 98 Q 156 94, 150 94" stroke="#f8fafc" stroke-width="1.8" fill="none" stroke-linecap="round" />
+                    </g>
+                  </g>
+
+                  <!-- 6. Santa's Traditional Red Velvet Hat -->
+                  <g class="santa-hat-realistic">
+                    <!-- Plush Hat Fur Trim Band -->
+                    <rect class="hat-trim-fur" x="83" y="49" width="70" height="17" rx="8.5" fill="url(#furTrimGrad)" stroke="#cbd5e1" stroke-width="1.8" filter="drop-shadow(0 3px 6px rgba(0,0,0,0.32))" />
+                    <!-- Red Velvet Hat Cone Drooping to Right with natural fabric drape -->
+                    <path class="hat-cone" d="M91 52 C102 17, 162 13, 178 39 C186 54, 194 65, 187 78 C183 71, 169 55, 150 52 Z" fill="url(#suitVelvet)" stroke="#991b1b" stroke-width="2" filter="drop-shadow(0 4px 8px rgba(0,0,0,0.35))" />
+                    <!-- Fluffy Spherical White Fur Pompom -->
+                    <circle class="hat-pompom-white" cx="187" cy="83" r="13" fill="url(#furTrimGrad)" stroke="#cbd5e1" stroke-width="1.4" filter="drop-shadow(0 4px 8px rgba(0,0,0,0.4))" />
+                  </g>
+
+                  <!-- 7. Right Arm & Gift-Throwing Gesture -->
+                  <g class="santa-arms-throw">
+                    <g class="santa-arm arm-right" transform-origin="160 132">
+                      <!-- Velvet Sleeve with realistic elbow bend -->
+                      <path d="M160 132 C179 154, 187 178, 175 200" stroke="url(#suitVelvet)" stroke-width="26" stroke-linecap="round" />
+                      <!-- Fur Sleeve Cuff -->
+                      <rect x="157" y="189" width="28" height="13" rx="6.5" fill="url(#furTrimGrad)" stroke="#cbd5e1" stroke-width="1.2" />
+                      <!-- Forest Green Velvet Mitten with Gold Piping -->
+                      <circle class="mitten-green" cx="172" cy="206" r="11.5" fill="#047857" stroke="url(#goldBuckleGrad)" stroke-width="2" />
+                      <!-- Held Christmas Gift in Hand -->
+                      <g id="held-gift-mini" class="held-gift-mini" transform="translate(162, 212)">
+                        <rect x="0" y="0" width="26" height="26" rx="4" fill="#047857" stroke="url(#goldBuckleGrad)" stroke-width="2" />
+                        <line x1="13" y1="0" x2="13" y2="26" stroke="#fde047" stroke-width="3.6" />
+                        <line x1="0" y1="13" x2="26" y2="13" stroke="#fde047" stroke-width="3.6" />
+                        <circle cx="13" cy="13" r="3.8" fill="#fef08a" stroke="#b45309" stroke-width="0.8" />
+                      </g>
+                    </g>
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thrown Gift Trajectory Arc -->
+          <div id="thrown-gift-actor" class="thrown-gift-actor">
+            <div class="flying-present-box">
+              <div class="present-box-body"></div>
+              <div class="present-ribbon-gold-h"></div>
+              <div class="present-ribbon-gold-v"></div>
+              <div class="present-bow-golden"></div>
+              <div class="present-sparkle-trail"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Stage Magical Gift Reveal Container -->
+        <div id="magical-gift-stage" class="magical-gift-stage" aria-hidden="true">
+          <div class="magical-gift-wrapper">
+            <div id="gift-settled-box" class="gift-settled-box">
+              <div class="gift-box-3d-model">
+                <div class="gift-cube-base">
+                  <div class="cube-face cube-front"></div>
+                  <div class="cube-face cube-back"></div>
+                  <div class="cube-face cube-left"></div>
+                  <div class="cube-face cube-right"></div>
+                  <div class="cube-face cube-bottom"></div>
+                  <div class="cube-face cube-top"></div>
+                  <div class="cube-ribbon ribbon-h"></div>
+                  <div class="cube-ribbon ribbon-v"></div>
+                </div>
+                <div class="gift-lid-floating" id="gift-lid-floating">
+                  <div class="lid-roof"></div>
+                  <div class="lid-rim"></div>
+                  <div class="lid-golden-bow">
+                    <div class="bow-loop bow-loop-l"></div>
+                    <div class="bow-loop bow-loop-r"></div>
+                    <div class="bow-knot"></div>
+                    <div class="bow-tail bow-tail-l"></div>
+                    <div class="bow-tail bow-tail-r"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="gift-radiant-glow"></div>
+              <div class="gift-star-burst-aura" id="gift-star-burst-aura"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Global Persistent Department Credit (Shared Layout Element) -->
+      <aside id="department-credit" class="department-credit" aria-label="Department of Computer Science">
+        <span class="department-credit-text">Department of Computer Science</span>
+      </aside>
+
+      <!-- Toast Container for Notifications -->
+      <div id="toast-container" aria-live="polite"></div>
+    </div>
+
+    <!-- Application Script (Classic script format, works 100% via file:/// without CORS restrictions) -->
+    <script src="./bundle.js?v=20261113_1916"></script>
+  </body>
+</html>

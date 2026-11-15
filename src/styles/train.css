@@ -1,0 +1,2173 @@
+/* ==========================================================================
+   CHRISTMAS TRAIN CINEMATIC JOURNEY STYLES
+   Direction: LEFT -> RIGHT
+   Locomotive: FRONT on RIGHT, HEADLIGHT facing RIGHT
+   ========================================================================== */
+
+.train-journey-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-train-overlay);
+  background: var(--color-midnight);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.train-journey-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Scenery Parallax Backdrop Viewports */
+.train-scenery-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.train-scenery-stage {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center bottom;
+  opacity: 0;
+  transition: opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1), transform 12s linear;
+  transform: scale(1.04);
+}
+
+.train-scenery-stage.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Three Progressive Cinematic Backgrounds */
+.stage-departure {
+  background-image: url('/images/train_station_departure.jpg');
+}
+
+.stage-viaduct {
+  background-image: url('/images/train_mountain_viaduct.jpg');
+}
+
+.stage-arrival {
+  background-image: url('/images/train_arrival_terminal.jpg');
+}
+
+/* Vignette & Snow layer on top of scenery */
+.train-scenery-vignette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(5, 10, 22, 0.75) 0%, rgba(5, 10, 22, 0.1) 40%, rgba(5, 10, 22, 0.4) 75%, rgba(5, 10, 22, 0.95) 100%),
+              radial-gradient(circle at center, transparent 40%, rgba(5, 10, 22, 0.6) 100%);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   JOURNEY HUD (Heads Up Display)
+   ========================================================================== */
+
+.train-hud-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  background: linear-gradient(to bottom, rgba(5, 10, 22, 0.85) 0%, transparent 100%);
+}
+
+.train-hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 0.85rem;
+}
+
+.journey-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--glass-bg-card);
+  border: 1px solid var(--color-gold-border);
+  padding: 0.4rem 1.1rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  color: var(--color-gold-light);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.btn-train-music-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(254, 240, 138, 0.4);
+  color: #fef08a;
+  padding: 0.4rem 0.95rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+  backdrop-filter: blur(8px);
+}
+
+.btn-train-music-toggle:hover {
+  background: rgba(212, 175, 55, 0.3);
+  border-color: rgba(254, 240, 138, 0.7);
+  box-shadow: 0 0 15px rgba(254, 240, 138, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-train-music-toggle.muted {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #94a3b8;
+}
+
+.btn-train-music-toggle.muted:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .btn-train-music-toggle span:last-child {
+    display: none;
+  }
+  .btn-train-music-toggle {
+    padding: 0.4rem 0.65rem;
+  }
+}
+
+.btn-exit-journey {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--color-snow-soft);
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-exit-journey:hover {
+  background: var(--color-crimson);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+/* Journey Progress Bar */
+.journey-progress-track {
+  width: 100%;
+  max-width: 650px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  position: relative;
+  overflow: visible;
+  margin-bottom: 0.5rem;
+}
+
+.journey-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(to right, #eab308, #f59e0b, #ef4444);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
+  transition: none;
+}
+
+.journey-waypoint-label {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  color: var(--color-snow-white);
+  letter-spacing: 0.03em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+/* ==========================================================================
+   RAILROAD TRACKS & EMBANKMENT
+   ========================================================================== */
+
+.railway-track-bed {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 140px;
+  background: linear-gradient(to bottom, transparent 0%, rgba(10, 18, 38, 0.7) 35%, rgba(5, 10, 22, 0.98) 100%);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.rail-steel {
+  position: absolute;
+  bottom: 58px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(to bottom, #cbd5e1 0%, #64748b 60%, #334155 100%);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.4), 0 2px 5px rgba(0, 0, 0, 0.8);
+}
+
+.rail-ties-pattern {
+  position: absolute;
+  bottom: 46px;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background-image: repeating-linear-gradient(90deg, #382415 0px, #382415 14px, transparent 14px, transparent 38px);
+  opacity: 0.85;
+}
+
+/* Snow clumps on track bed */
+.track-snow-cover {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: linear-gradient(to top, #ffffff 0%, rgba(241, 245, 249, 0.7) 60%, transparent 100%);
+  opacity: 0.45;
+}
+
+/* ==========================================================================
+   THE CHRISTMAS TRAIN — VECTOR & MOTION SYSTEM
+   Direction: Left to Right
+   Locomotive: Front Facing Right!
+   ========================================================================== */
+
+/* Movement Container: Strictly handles translateX with butter-smooth 3D hardware acceleration */
+.train-movement-container {
+  position: absolute;
+  bottom: 58px;
+  left: 0;
+  width: 100%;
+  height: 180px;
+  pointer-events: none;
+  z-index: 6;
+  transform: translate3d(-1200px, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Cinematic Train Fade-Exit Animation:
+   Train completes journey at center, pauses briefly, then smoothly vanishes
+   before Santa's flying arrival so Santa and reindeer are the sole visual focus */
+.train-movement-container.train-fade-exit {
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+  transition: opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1), transform 1.4s ease;
+  pointer-events: none;
+}
+
+.railway-track-bed.train-fade-exit {
+  opacity: 0.15;
+  transition: opacity 1.4s ease;
+}
+
+.train-visual.train-fade-exit {
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+
+/* Train Visual: Holds the assembled train facing RIGHT */
+.train-visual {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  height: 180px;
+}
+
+/* --------------------------------------------------------------------------
+   THE REALISTIC CHRISTMAS TRAIN — VICTORIAN STEAM EXPRESS
+   Colors: Deep Emerald Green, Rich Burgundy Red, Champagne Gold, Metallic Detailing
+   -------------------------------------------------------------------------- */
+
+/* Base Coach Styling */
+.train-car {
+  position: relative;
+  height: 135px;
+  border-radius: 8px 8px 3px 3px;
+  box-shadow: -4px 6px 20px rgba(0, 0, 0, 0.65);
+  margin-right: 0;
+}
+
+.train-coach {
+  width: 240px;
+}
+
+/* CAR 1: Starlight Observation Lounge (Burgundy & Gold) */
+.train-coach-obs {
+  background: linear-gradient(180deg, #881337 0%, #4c0519 80%, #1f040a 100%);
+  border: 1.5px solid rgba(254, 240, 138, 0.4);
+}
+
+/* CAR 2: Holiday Parlor Car (Deep Emerald & Gold) */
+.train-coach-parlor {
+  background: linear-gradient(180deg, #064e3b 0%, #022c22 80%, #011611 100%);
+  border: 1.5px solid rgba(254, 240, 138, 0.4);
+}
+
+/* CAR 3: Evergreen Dining Saloon (Rich Burgundy & Gold) */
+.train-coach-dining {
+  background: linear-gradient(180deg, #881337 0%, #4c0519 80%, #1f040a 100%);
+  border: 1.5px solid rgba(254, 240, 138, 0.4);
+}
+
+/* CAR 4: St. Paul's Royal Pullman (Deep Emerald & Gold) */
+.train-coach-pullman {
+  background: linear-gradient(180deg, #064e3b 0%, #022c22 80%, #011611 100%);
+  border: 1.5px solid rgba(254, 240, 138, 0.4);
+}
+
+/* Roof & Clerestory Architecture */
+.car-snow-roof {
+  position: absolute;
+  top: -10px;
+  left: -4px;
+  right: -4px;
+  height: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 70%, #94a3b8 100%);
+  border-radius: 12px 12px 3px 3px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+  z-index: 3;
+}
+
+.roof-icicles {
+  position: absolute;
+  bottom: -4px;
+  left: 10px;
+  right: 10px;
+  height: 5px;
+  background-image: repeating-linear-gradient(90deg, #ffffff 0px, #ffffff 4px, transparent 4px, transparent 10px);
+  border-radius: 0 0 2px 2px;
+  opacity: 0.85;
+}
+
+.coach-clerestory-strip {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  right: 8px;
+  height: 6px;
+  background: linear-gradient(90deg, #78350f 0%, #eab308 50%, #78350f 100%);
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+/* Arched Victorian Windows with Warm Glow & Drapery */
+.coach-windows-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 22px 12px 0;
+  gap: 8px;
+}
+
+.coach-window-realistic {
+  position: relative;
+  width: 38px;
+  height: 52px;
+  background: radial-gradient(circle at 50% 60%, #fef08a 0%, #f59e0b 70%, #b45309 100%);
+  border-radius: 16px 16px 3px 3px;
+  border: 2px solid #78350f;
+  box-shadow: 0 0 14px rgba(254, 240, 138, 0.7);
+  overflow: hidden;
+}
+
+.window-curtain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: #881337;
+  border-bottom: 2px solid #eab308;
+  clip-path: polygon(0 0, 100% 0, 100% 60%, 75% 100%, 50% 60%, 25% 100%, 0 60%);
+}
+
+.window-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(254, 240, 138, 0.4) 0%, transparent 70%);
+  animation: windowFlicker 4s infinite alternate ease-in-out;
+}
+
+@keyframes windowFlicker {
+  0% { opacity: 0.85; }
+  100% { opacity: 1; }
+}
+
+/* Coach Decorations & Lettering */
+.coach-gold-pinstripe {
+  position: absolute;
+  bottom: 34px;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #fef08a, #eab308, #fef08a, transparent);
+}
+
+.coach-garland-pine {
+  position: absolute;
+  bottom: 24px;
+  left: 14px;
+  right: 14px;
+  height: 4px;
+  background: #064e3b;
+  border-radius: 2px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.pine-berry {
+  width: 4px;
+  height: 4px;
+  background: #dc2626;
+  border-radius: 50%;
+  box-shadow: 0 0 4px #dc2626;
+}
+
+.coach-nameplate {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 8.5px;
+  letter-spacing: 0.15em;
+  color: #fef08a;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Articulated Gangway Bellows (Seamless connections between cars, NO floating gaps) */
+.gangway-bellows {
+  position: relative;
+  width: 12px;
+  height: 115px;
+  background: repeating-linear-gradient(90deg, #09090b 0px, #09090b 3px, #27272a 3px, #27272a 6px);
+  border-top: 3px solid #18181b;
+  border-bottom: 3px solid #18181b;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.8);
+  z-index: 4;
+  margin: 0 -1px;
+}
+
+.coupler-heavy {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 3px;
+  align-self: flex-end;
+  margin-bottom: 24px;
+  z-index: 4;
+}
+
+/* Bogie Trucks & Springs under Coaches */
+.coach-bogies-row {
+  position: absolute;
+  bottom: -18px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+  z-index: 5;
+}
+
+.bogie-truck {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  background: #0f172a;
+  padding: 2px 4px;
+  border-radius: 3px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+}
+
+.bogie-spring {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 5px;
+  background: repeating-linear-gradient(90deg, #475569 0px, #475569 2px, #0f172a 2px, #0f172a 4px);
+}
+
+/* --------------------------------------------------------------------------
+   CAR 5: THE COAL TENDER (Deep Emerald & Gold Crest)
+   -------------------------------------------------------------------------- */
+.train-tender-realistic {
+  position: relative;
+  width: 175px;
+  height: 112px;
+  background: linear-gradient(180deg, #064e3b 0%, #022c22 75%, #011611 100%);
+  border-radius: 4px 6px 3px 3px;
+  border: 1.5px solid rgba(254, 240, 138, 0.4);
+}
+
+.tender-coal-mound {
+  position: absolute;
+  top: -18px;
+  left: 10px;
+  right: 15px;
+  height: 22px;
+  background: radial-gradient(circle at 50% 20%, #27272a 0%, #09090b 80%);
+  border-radius: 16px 16px 0 0;
+  box-shadow: inset 0 -4px 6px rgba(255, 255, 255, 0.1);
+}
+
+.tender-snow-crest {
+  position: absolute;
+  top: -4px;
+  left: 8px;
+  right: 12px;
+  height: 6px;
+  background: #ffffff;
+  border-radius: 6px;
+  opacity: 0.9;
+}
+
+.tender-body-panel {
+  position: absolute;
+  inset: 12px 14px 28px 14px;
+  border: 1px solid rgba(254, 240, 138, 0.35);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tender-gold-crest {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: #fef08a;
+  font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* --------------------------------------------------------------------------
+   CAR 6 (FRONT): REALISTIC VICTORIAN CHRISTMAS STEAM LOCOMOTIVE
+   -------------------------------------------------------------------------- */
+.train-locomotive-realistic {
+  position: relative;
+  width: 360px;
+  height: 165px;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Driver Cab in Rich Burgundy Red with Arched Windows */
+.loco-cab-realistic {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 115px;
+  height: 152px;
+  background: linear-gradient(180deg, #881337 0%, #4c0519 80%, #1f040a 100%);
+  border-radius: 6px 4px 2px 2px;
+  border: 1.5px solid rgba(254, 240, 138, 0.45);
+  box-shadow: -2px 4px 18px rgba(0, 0, 0, 0.75);
+  z-index: 2;
+}
+
+.cab-roof-curved {
+  position: absolute;
+  top: -12px;
+  left: -4px;
+  right: -4px;
+  height: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 50%, #1e293b 100%);
+  border-radius: 12px 12px 2px 2px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+}
+
+.cab-window-brass {
+  position: absolute;
+  top: 24px;
+  right: 14px;
+  width: 36px;
+  height: 50px;
+  background: radial-gradient(circle at 50% 50%, #fef08a 0%, #f59e0b 75%, #b45309 100%);
+  border-radius: 14px 14px 2px 2px;
+  border: 2px solid #78350f;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.8);
+  overflow: hidden;
+}
+
+.firebox-glow {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 18px;
+  background: radial-gradient(circle at 50% 100%, #ef4444 0%, #f59e0b 60%, transparent 100%);
+  animation: fireboxFlicker 1.8s infinite alternate ease-in-out;
+}
+
+@keyframes fireboxFlicker {
+  0% { opacity: 0.6; filter: brightness(1); }
+  50% { opacity: 0.95; filter: brightness(1.3); }
+  100% { opacity: 0.7; filter: brightness(1.1); }
+}
+
+.cab-handrail-brass {
+  position: absolute;
+  bottom: 12px;
+  left: 8px;
+  width: 4px;
+  height: 45px;
+  background: linear-gradient(to bottom, #fef08a 0%, #eab308 60%, #78350f 100%);
+  border-radius: 2px;
+}
+
+/* Boiler: Long Cylindrical Emerald Boiler */
+.loco-boiler-realistic {
+  position: absolute;
+  left: 100px;
+  bottom: 0;
+  width: 235px;
+  height: 106px;
+  background: linear-gradient(180deg, #047857 0%, #064e3b 25%, #022c22 75%, #011611 100%);
+  border-radius: 0 38px 4px 0;
+  border: 1.5px solid rgba(254, 240, 138, 0.4);
+  box-shadow: inset 0 6px 12px rgba(255, 255, 255, 0.15), inset 0 -6px 12px rgba(0, 0, 0, 0.6);
+  z-index: 1;
+}
+
+.boiler-specular-highlight {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 20px;
+  height: 8px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 30%, rgba(255, 255, 255, 0.4) 60%, transparent 100%);
+  border-radius: 4px;
+}
+
+/* 4 Champagne Gold Boiler Strapping Bands */
+.boiler-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(to bottom, #fef08a 0%, #eab308 50%, #78350f 100%);
+  box-shadow: 0 0 6px rgba(234, 179, 8, 0.4);
+}
+
+.b-band-1 { left: 45px; }
+.b-band-2 { left: 100px; }
+.b-band-3 { left: 155px; }
+.b-band-4 { left: 205px; }
+
+/* Polished Brass Domes & Ringing Bell */
+.loco-steam-dome-brass {
+  position: absolute;
+  top: -24px;
+  left: 70px;
+  width: 32px;
+  height: 32px;
+  background: radial-gradient(circle at 45% 30%, #fef08a 0%, #eab308 65%, #92400e 100%);
+  border-radius: 16px 16px 2px 2px;
+  border: 1px solid #78350f;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
+  z-index: 3;
+}
+
+.loco-sand-dome-brass {
+  position: absolute;
+  top: -18px;
+  left: 175px;
+  width: 26px;
+  height: 24px;
+  background: radial-gradient(circle at 45% 30%, #fef08a 0%, #eab308 65%, #92400e 100%);
+  border-radius: 14px 14px 2px 2px;
+  border: 1px solid #78350f;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.5);
+  z-index: 3;
+}
+
+.loco-bell-brass {
+  position: absolute;
+  top: -16px;
+  left: 130px;
+  width: 15px;
+  height: 20px;
+  background: #fde047;
+  border-radius: 4px 4px 6px 6px;
+  border: 1px solid #78350f;
+  z-index: 3;
+}
+
+.loco-bell-brass::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 5px;
+  width: 5px;
+  height: 5px;
+  background: #78350f;
+  border-radius: 50%;
+}
+
+.running-board-steel {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: -10px;
+  height: 6px;
+  background: linear-gradient(to bottom, #94a3b8 0%, #334155 100%);
+  border-radius: 2px;
+}
+
+/* Cast-Iron Smokebox Front with Riveted Door */
+.loco-smokebox-realistic {
+  position: absolute;
+  left: 290px;
+  bottom: 0;
+  width: 50px;
+  height: 104px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 70%, #020617 100%);
+  border-radius: 0 28px 4px 0;
+  border: 1.5px solid rgba(148, 163, 184, 0.4);
+  z-index: 2;
+}
+
+.smokebox-door-ring {
+  position: absolute;
+  top: 25px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  border: 2px solid #64748b;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.smokebox-star-crest {
+  font-size: 14px;
+  color: #fef08a;
+  text-shadow: 0 0 6px #fde047;
+}
+
+/* Victorian Flanged Chimney with Smoke Emitter */
+.loco-chimney-flanged {
+  position: absolute;
+  top: -44px;
+  left: 12px;
+  width: 26px;
+  height: 48px;
+  background: linear-gradient(90deg, #1e293b 0%, #475569 45%, #0f172a 100%);
+  border-radius: 3px 3px 0 0;
+  border-top: 6px solid #d97706;
+  z-index: 4;
+}
+
+.chimney-brass-crown {
+  position: absolute;
+  top: -2px;
+  left: -4px;
+  right: -4px;
+  height: 5px;
+  background: linear-gradient(90deg, #78350f 0%, #fef08a 50%, #78350f 100%);
+  border-radius: 2px;
+}
+
+.chimney-smoke-emitter {
+  position: absolute;
+  top: -15px;
+  left: 12px;
+  width: 1px;
+  height: 1px;
+}
+
+.smoke-puff {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(241, 245, 249, 0.5) 45%, transparent 75%);
+  filter: blur(4px);
+  pointer-events: none;
+  animation: puffDrift 2.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes puffDrift {
+  0% {
+    width: 14px;
+    height: 14px;
+    opacity: 0.95;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-100px, -45px) scale(3.8);
+  }
+  100% {
+    width: 26px;
+    height: 26px;
+    opacity: 0;
+    transform: translate(-240px, -90px) scale(6.5);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   THE HEADLIGHT — PHYSICALLY ANCHORED TO FRONT SMOKEBOX BRACKET (NOT FLOATING!)
+   -------------------------------------------------------------------------- */
+.loco-headlight-bracketed {
+  position: absolute;
+  bottom: 50px;
+  right: -14px;
+  width: 32px;
+  height: 36px;
+  z-index: 8;
+}
+
+.headlight-bracket-iron {
+  position: absolute;
+  bottom: -6px;
+  left: 2px;
+  width: 8px;
+  height: 14px;
+  background: #334155;
+  border-radius: 2px;
+}
+
+.headlight-brass-housing {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 34px;
+  background: linear-gradient(90deg, #b45309 0%, #eab308 60%, #fef08a 100%);
+  border-radius: 3px 12px 12px 3px;
+  border: 2px solid #78350f;
+  box-shadow: 0 0 20px rgba(254, 240, 138, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 3px;
+}
+
+.headlight-lens-glass {
+  width: 14px;
+  height: 24px;
+  background: radial-gradient(circle at center, #ffffff 0%, #fef08a 60%, #f59e0b 100%);
+  border-radius: 0 10px 10px 0;
+  box-shadow: 0 0 14px #ffffff;
+}
+
+.headlight-beam-volumetric {
+  position: absolute;
+  top: -65px;
+  left: 28px;
+  width: 700px;
+  height: 175px;
+  background: linear-gradient(90deg, rgba(254, 240, 138, 0.7) 0%, rgba(254, 240, 138, 0.3) 30%, rgba(255, 255, 255, 0.08) 70%, transparent 100%);
+  clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 60%);
+  filter: blur(6px);
+  pointer-events: none;
+  animation: beamFlicker 3s infinite alternate ease-in-out;
+}
+
+@keyframes beamFlicker {
+  0% { opacity: 0.85; }
+  50% { opacity: 0.98; }
+  100% { opacity: 0.9; }
+}
+
+/* Front Cowcatcher Snowplow with Vertical Steel Bars */
+.loco-cowcatcher-heavy {
+  position: absolute;
+  bottom: 0;
+  right: -26px;
+  width: 36px;
+  height: 48px;
+  background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 80%, #0f172a 100%);
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+  border: 1.5px solid rgba(254, 240, 138, 0.5);
+  z-index: 4;
+}
+
+.cowcatcher-bars {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(90deg, rgba(254, 240, 138, 0.4) 0px, rgba(254, 240, 138, 0.4) 2px, transparent 2px, transparent 6px);
+}
+
+/* --------------------------------------------------------------------------
+   WALSCHAERTS RECIPROCATING SIDE RODS & DRIVER WHEELS
+   -------------------------------------------------------------------------- */
+.loco-running-gear {
+  position: absolute;
+  bottom: -20px;
+  left: 10px;
+  right: 0;
+  height: 52px;
+  z-index: 6;
+}
+
+.wheels-deck {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding-left: 10px;
+}
+
+.train-wheel {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #94a3b8 0%, #334155 45%, #0f172a 80%, #020617 100%);
+  border: 3px solid #cbd5e1;
+  box-shadow: inset 0 0 6px #000, 0 3px 6px rgba(0, 0, 0, 0.8);
+  position: relative;
+}
+
+.wheel-driver {
+  width: 52px;
+  height: 52px;
+  border: 4px solid #fef08a;
+  box-shadow: inset 0 0 8px #000, 0 3px 8px rgba(0, 0, 0, 0.9);
+}
+
+.wheel-pilot {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 4px;
+}
+
+.counterweight {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 10px;
+  background: #78350f;
+  border-radius: 0 0 10px 10px;
+}
+
+.wheel-spoke {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 85%;
+  height: 2px;
+  background: #cbd5e1;
+  transform: translate(-50%, -50%);
+}
+
+.spoke-45 { transform: translate(-50%, -50%) rotate(45deg); }
+.spoke-90 { transform: translate(-50%, -50%) rotate(90deg); }
+.spoke-135 { transform: translate(-50%, -50%) rotate(135deg); }
+
+/* Walschaerts Reciprocating Connecting Rod */
+.connecting-rod-assembly {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 180px;
+  height: 8px;
+  pointer-events: none;
+  z-index: 7;
+}
+
+.main-side-rod {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 160px;
+  height: 6px;
+  background: linear-gradient(to bottom, #f1f5f9 0%, #94a3b8 50%, #475569 100%);
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.piston-crosshead {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  width: 22px;
+  height: 14px;
+  background: #64748b;
+  border: 1px solid #cbd5e1;
+  border-radius: 2px;
+}
+
+.train-rolling .train-wheel {
+  animation: rotateWheel 0.75s linear infinite;
+}
+
+.train-rolling .main-side-rod {
+  animation: walschaertsPiston 0.75s linear infinite;
+}
+
+@keyframes rotateWheel {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes walschaertsPiston {
+  0%   { transform: translate(0px, 0px); }
+  25%  { transform: translate(12px, -4px); }
+  50%  { transform: translate(24px, 0px); }
+  75%  { transform: translate(12px, 4px); }
+  100% { transform: translate(0px, 0px); }
+}
+
+/* ==========================================================================
+   SANTA CLAUS CINEMATIC STAGE (FLYING, LANDING, WALKING, GIFT THROWING)
+   ========================================================================== */
+.santa-cinematic-stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  overflow: hidden;
+}
+
+.santa-cinematic-stage.active {
+  opacity: 1;
+}
+
+/* 1. Flying Sleigh in the Night Sky */
+.santa-flying-sleigh {
+  position: absolute;
+  top: 12%;
+  left: -500px;
+  width: 480px;
+  height: 120px;
+  filter: drop-shadow(0 0 16px rgba(254, 240, 138, 0.45));
+  transform-origin: center center;
+  display: none;
+  z-index: 12;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.santa-flying-sleigh.flying {
+  display: block;
+  animation: sleighFlightPath 5.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes sleighFlightPath {
+  0% {
+    transform: translate(0, 0) scale(0.35) rotate(-8deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+    transform: translate(25vw, 6vh) scale(0.55) rotate(-3deg);
+  }
+  45% {
+    transform: translate(55vw, 14vh) scale(0.8) rotate(4deg);
+  }
+  75% {
+    transform: translate(38vw, 28vh) scale(1.0) rotate(-2deg);
+  }
+  100% {
+    transform: translate(16vw, 46vh) scale(1.15) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.sleigh-stardust-particles {
+  position: absolute;
+  top: 55%;
+  left: -120px;
+  width: 140px;
+  height: 30px;
+  background: radial-gradient(ellipse at right, rgba(254, 240, 138, 0.85) 0%, rgba(234, 179, 8, 0.45) 45%, transparent 80%);
+  filter: blur(4px);
+}
+
+/* ==========================================================================
+   GALLOPING REINDEER TEAM — DISNEYLAND CHRISTMAS ANIMATION STANDARDS
+   ========================================================================== */
+
+/* Natural Spine Flex & Rhythmic Galloping Wave for each Reindeer */
+.reindeer-unit {
+  transform-origin: 35px 50px;
+  animation: reindeerGallopBob 0.65s ease-in-out infinite alternate;
+}
+
+/* Staggered galloping strides across the tandem team */
+.reindeer-rudolph {
+  animation-delay: 0s;
+}
+.reindeer-comet {
+  animation-delay: 0.16s;
+}
+.reindeer-prancer {
+  animation-delay: 0.32s;
+}
+.reindeer-dasher {
+  animation-delay: 0.48s;
+}
+
+@keyframes reindeerGallopBob {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+  100% {
+    transform: translateY(2px) rotate(-1.5deg);
+  }
+}
+
+/* Fluid Anatomical Galloping Legs: Forelegs Reach Forward, Hindlegs Drive Backwards */
+.reindeer-leg {
+  transform-box: fill-box;
+}
+
+.foreleg-l {
+  transform-box: fill-box;
+  transform-origin: top left;
+  animation: forelegGallopL 0.65s ease-in-out infinite;
+}
+.foreleg-r {
+  transform-box: fill-box;
+  transform-origin: top left;
+  animation: forelegGallopR 0.65s ease-in-out infinite;
+}
+.hindleg-l {
+  transform-box: fill-box;
+  transform-origin: top right;
+  animation: hindlegGallopL 0.65s ease-in-out infinite;
+}
+.hindleg-r {
+  transform-box: fill-box;
+  transform-origin: top right;
+  animation: hindlegGallopR 0.65s ease-in-out infinite;
+}
+
+@keyframes forelegGallopL {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(18deg) translateY(-2px);
+  }
+  60% {
+    transform: rotate(-14deg) translateY(1px);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes forelegGallopR {
+  0% {
+    transform: rotate(-12deg);
+  }
+  35% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(20deg) translateY(-2px);
+  }
+  100% {
+    transform: rotate(-12deg);
+  }
+}
+
+@keyframes hindlegGallopL {
+  0% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(-22deg) translateX(2px);
+  }
+  70% {
+    transform: rotate(16deg) translateX(-1px);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes hindlegGallopR {
+  0% {
+    transform: rotate(14deg);
+  }
+  45% {
+    transform: rotate(0deg);
+  }
+  80% {
+    transform: rotate(-20deg) translateX(2px);
+  }
+  100% {
+    transform: rotate(14deg);
+  }
+}
+
+/* Rudolph's Luminous Ruby Red Nose with Gentle Holiday Glow */
+.rudolph,
+#rudolph-nose,
+.rudolph-nose-glow {
+  animation: rudolphNosePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes rudolphNosePulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px #ef4444) drop-shadow(0 0 14px rgba(239, 68, 68, 0.8));
+    opacity: 0.92;
+  }
+  50% {
+    filter: drop-shadow(0 0 12px #f87171) drop-shadow(0 0 24px rgba(239, 68, 68, 1));
+    opacity: 1;
+  }
+}
+
+/* Jingle Bells Shimmer on Harness */
+.reindeer-bells circle,
+.ground-reindeer-bell {
+  animation: bellShimmer 2.2s ease-in-out infinite;
+}
+
+@keyframes bellShimmer {
+  0%, 100% {
+    opacity: 0.88;
+    fill: #fde047;
+  }
+  50% {
+    opacity: 1;
+    fill: #fef08a;
+  }
+}
+
+/* Parked Ground Reindeer Gentle Idle & Breathing in the Snow */
+.parked-reindeer-resting {
+  transform-origin: 190px 90px;
+  animation: reindeerGroundBreathe 3.6s ease-in-out infinite;
+}
+
+@keyframes reindeerGroundBreathe {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(1.015, 1.025) translateY(-1px);
+  }
+}
+
+.parked-reindeer-head,
+.reindeer-head-resting {
+  transform-box: fill-box;
+  transform-origin: 50% 80%;
+  animation: reindeerHeadIdle 5s ease-in-out infinite;
+}
+
+@keyframes reindeerHeadIdle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(1.5deg) translateY(-0.5px);
+  }
+  75% {
+    transform: rotate(-1deg) translateY(0.5px);
+  }
+}
+
+/* 2. Ground Actor: Parked Sleigh & Premium Large Walking Santa */
+.santa-ground-actor {
+  position: absolute;
+  bottom: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 40px;
+  z-index: 16;
+  width: auto;
+  max-width: 95vw;
+}
+
+.santa-ground-actor.active {
+  display: flex;
+}
+
+/* Parked Sleigh & Resting Reindeer in Snow */
+.landed-sleigh-parked {
+  position: relative;
+  width: 260px;
+  height: 140px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.7));
+}
+
+/* Premium Large Walking Santa Figure (Disney Theme-Park / High-Quality Christmas Film Standards) */
+.santa-figure {
+  position: relative;
+  width: 230px;
+  height: 345px;
+  flex-shrink: 0;
+  transform: translateX(0);
+  filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 25px rgba(254, 240, 138, 0.18));
+}
+
+/* Phase 2: Smooth Realistic Step-Down from Sleigh to Snow (4.5s - 6.5s) */
+.santa-figure.stepping-down {
+  animation: santaStepDownSleigh 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes santaStepDownSleigh {
+  0% {
+    transform: translate(-30px, -20px) scale(0.96) rotate(-3deg);
+  }
+  35% {
+    transform: translate(-18px, -12px) scale(0.98) rotate(-1.5deg);
+  }
+  75% {
+    transform: translate(-6px, -2px) scale(1) rotate(0.5deg);
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+}
+
+.santa-figure.stepping-down .leg-r {
+  animation: santaStepLeadLeg 2s ease-out forwards;
+  transform-origin: 136px 245px;
+}
+
+@keyframes santaStepLeadLeg {
+  0% { transform: rotate(-14deg); }
+  40% { transform: rotate(10deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.santa-figure.stepping-down .leg-l {
+  animation: santaStepTrailingLeg 2s ease-out forwards;
+  transform-origin: 94px 245px;
+}
+
+@keyframes santaStepTrailingLeg {
+  0% { transform: rotate(-8deg); }
+  50% { transform: rotate(-12deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Phase 3: Walking Forward Naturally with Weight Transfer (6.5s - 8.5s) */
+.santa-figure.walking {
+  animation: santaWalkForward 3.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes santaWalkForward {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(75px); }
+}
+
+/* Natural Vertical Weight Transfer & Gait Oscillation */
+.santa-figure.walking .santa-character-body {
+  animation: santaBodyWalkBob 0.8s infinite ease-in-out;
+}
+
+@keyframes santaBodyWalkBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.santa-character-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Santa Hat */
+.santa-hat-realistic {
+  position: relative;
+  z-index: 5;
+}
+
+/* Santa Face & Flowing White Beard */
+.santa-face-realistic {
+  position: relative;
+  z-index: 4;
+}
+
+.santa-flowing-beard {
+  position: relative;
+}
+
+/* Velvet Coat & Golden Belt */
+.santa-coat-velvet {
+  position: relative;
+  z-index: 3;
+}
+
+/* Anatomical Walking Legs & Boots Facing Forward */
+.santa-legs-walking {
+  position: relative;
+  z-index: 2;
+}
+
+/* Natural Forward Leg Stride: Both Boots Face Forward in Walking Direction */
+.santa-figure.walking .leg-l {
+  animation: legStrideForwardL 0.8s infinite ease-in-out;
+  transform-origin: 94px 245px;
+}
+
+.santa-figure.walking .leg-r {
+  animation: legStrideForwardR 0.8s infinite ease-in-out;
+  transform-origin: 136px 245px;
+}
+
+@keyframes legStrideForwardL {
+  0% {
+    transform: rotate(14deg) translateY(-2px);
+  }
+  25% {
+    transform: rotate(2deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-14deg) translateY(-1px);
+  }
+  75% {
+    transform: rotate(-3deg) translateY(-3px);
+  }
+  100% {
+    transform: rotate(14deg) translateY(-2px);
+  }
+}
+
+@keyframes legStrideForwardR {
+  0% {
+    transform: rotate(-14deg) translateY(-1px);
+  }
+  25% {
+    transform: rotate(-3deg) translateY(-3px);
+  }
+  50% {
+    transform: rotate(14deg) translateY(-2px);
+  }
+  75% {
+    transform: rotate(2deg) translateY(0);
+  }
+  100% {
+    transform: rotate(-14deg) translateY(-1px);
+  }
+}
+
+/* Velvet Shoulder Sack */
+.santa-shoulder-sack {
+  position: relative;
+  z-index: 2;
+}
+
+.santa-figure.walking .santa-shoulder-sack {
+  animation: sackWalkingSway 0.8s infinite ease-in-out;
+  transform-origin: 65px 120px;
+}
+
+@keyframes sackWalkingSway {
+  0%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  50% {
+    transform: rotate(2.5deg) translateY(-2px);
+  }
+}
+
+.santa-figure.walking .santa-flowing-beard {
+  animation: beardWalkingBreeze 1.6s infinite ease-in-out;
+  transform-origin: 115px 105px;
+}
+
+@keyframes beardWalkingBreeze {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(2deg) translateX(1px);
+  }
+}
+
+/* Arms & Throwing Gesture */
+.santa-arms-throw {
+  position: relative;
+  z-index: 4;
+}
+
+.santa-figure.walking .arm-left {
+  animation: armLeftWalkingSwing 0.8s infinite ease-in-out;
+  transform-origin: 86px 115px;
+}
+
+@keyframes armLeftWalkingSwing {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-6deg);
+  }
+}
+
+.santa-figure.throwing .arm-right {
+  animation: santaThrowMotion 1.4s ease-out forwards;
+  transform-origin: 142px 115px;
+}
+
+@keyframes santaThrowMotion {
+  0% { transform: rotate(0deg); }
+  35% { transform: rotate(-40deg); }
+  70% { transform: rotate(50deg); }
+  100% { transform: rotate(15deg); }
+}
+
+/* 3. Thrown Gift Parabolic Arc */
+.thrown-gift-actor {
+  position: absolute;
+  bottom: 120px;
+  left: 52%;
+  width: 44px;
+  height: 44px;
+  display: none;
+  z-index: 20;
+}
+
+.thrown-gift-actor.in-flight {
+  display: block;
+  animation: giftThrowTrajectory 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes giftThrowTrajectory {
+  0% {
+    transform: translate(0, 0) scale(0.6) rotate(0deg);
+    opacity: 0.9;
+  }
+  40% {
+    transform: translate(6vw, -25vh) scale(1.4) rotate(180deg);
+  }
+  100% {
+    transform: translate(0, -6vh) scale(2.2) rotate(360deg);
+    opacity: 1;
+  }
+}
+
+/* Responsive Scaling for Santa and Sleigh */
+@media (max-width: 1024px) {
+  .santa-figure {
+    width: 195px;
+    height: 292px;
+  }
+  .landed-sleigh-parked {
+    width: 220px;
+    height: 120px;
+  }
+  .santa-flying-sleigh {
+    width: 440px;
+    height: 110px;
+  }
+}
+
+@media (max-width: 768px) {
+  .santa-ground-actor {
+    bottom: 65px;
+    gap: 15px;
+  }
+  .santa-figure {
+    width: 165px;
+    height: 248px;
+  }
+  .landed-sleigh-parked {
+    width: 180px;
+    height: 98px;
+  }
+  .santa-flying-sleigh {
+    width: 360px;
+    height: 90px;
+  }
+}
+
+@media (max-width: 480px) {
+  .santa-ground-actor {
+    bottom: 55px;
+    gap: 8px;
+  }
+  .santa-figure {
+    width: 145px;
+    height: 218px;
+  }
+  .landed-sleigh-parked {
+    width: 150px;
+    height: 82px;
+  }
+  .santa-flying-sleigh {
+    width: 300px;
+    height: 75px;
+  }
+}
+
+.flying-present-box {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #064e3b 0%, #047857 60%, #022c22 100%);
+  border: 1.5px solid #fef08a;
+  border-radius: 4px;
+  box-shadow: 0 0 20px rgba(254, 240, 138, 0.9);
+}
+
+.present-ribbon-gold-h {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #fde047;
+  transform: translateY(-50%);
+}
+
+.present-ribbon-gold-v {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #fde047;
+  transform: translateX(-50%);
+}
+
+.present-bow-golden {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 8px;
+  background: #fde047;
+  border-radius: 4px;
+  box-shadow: 0 0 8px #fef08a;
+}
+
+.present-sparkle-trail {
+  position: absolute;
+  inset: -10px;
+  background: radial-gradient(circle, rgba(254, 240, 138, 0.6) 0%, transparent 70%);
+  filter: blur(4px);
+}
+
+/* ==========================================================================
+   MAGICAL 3D GIFT REVEAL STAGE (CENTER SCREEN TRANSITION)
+   ========================================================================== */
+.magical-gift-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  background: radial-gradient(circle at center, rgba(5, 10, 22, 0.5) 0%, rgba(5, 10, 22, 0.85) 100%);
+}
+
+.magical-gift-stage.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.magical-gift-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+}
+
+.gift-settled-box {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  animation: giftSettleEntrance 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes giftSettleEntrance {
+  0% {
+    transform: scale(0.2) rotate(-15deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.gift-box-3d-model {
+  position: relative;
+  width: 140px;
+  height: 130px;
+  margin: 0 auto;
+}
+
+.gift-cube-base {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #022c22 100%);
+  border: 2px solid #fef08a;
+  border-radius: 8px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(254, 240, 138, 0.3);
+  overflow: hidden;
+}
+
+.cube-ribbon.ribbon-h {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 18px;
+  background: linear-gradient(180deg, #fef08a 0%, #eab308 50%, #b45309 100%);
+  transform: translateY(-50%);
+  box-shadow: 0 0 10px rgba(254, 240, 138, 0.6);
+}
+
+.cube-ribbon.ribbon-v {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 18px;
+  background: linear-gradient(90deg, #fef08a 0%, #eab308 50%, #b45309 100%);
+  transform: translateX(-50%);
+  box-shadow: 0 0 10px rgba(254, 240, 138, 0.6);
+}
+
+.gift-lid-floating {
+  position: absolute;
+  top: 10px;
+  left: -8px;
+  right: -8px;
+  height: 34px;
+  background: linear-gradient(135deg, #047857 0%, #064e3b 70%, #022c22 100%);
+  border: 2px solid #fef08a;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  z-index: 5;
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
+}
+
+.gift-lid-floating.open-lid {
+  transform: translateY(-75px) rotate(-18deg) scale(1.08);
+  opacity: 0.85;
+}
+
+.lid-golden-bow {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 30px;
+}
+
+.bow-loop {
+  position: absolute;
+  top: 0;
+  width: 26px;
+  height: 22px;
+  background: radial-gradient(circle at center, #fef08a 0%, #eab308 70%, #b45309 100%);
+  border: 1.5px solid #78350f;
+  border-radius: 50% 50% 10% 50%;
+  box-shadow: 0 0 10px rgba(254, 240, 138, 0.7);
+}
+
+.bow-loop-l {
+  left: 4px;
+  transform: rotate(-25deg);
+}
+
+.bow-loop-r {
+  right: 4px;
+  transform: rotate(25deg) scaleX(-1);
+}
+
+.bow-knot {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 14px;
+  background: #fde047;
+  border: 1.5px solid #78350f;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #fef08a;
+}
+
+.gift-radiant-glow {
+  position: absolute;
+  inset: -30px;
+  background: radial-gradient(circle, rgba(254, 240, 138, 0.45) 0%, rgba(234, 179, 8, 0.15) 50%, transparent 75%);
+  filter: blur(12px);
+  pointer-events: none;
+  animation: glowPulse 2.5s infinite alternate ease-in-out;
+}
+
+@keyframes glowPulse {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  100% { transform: scale(1.15); opacity: 1; }
+}
+
+.gift-star-burst-aura {
+  position: absolute;
+  inset: -60px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(254, 240, 138, 0.5) 30%, transparent 70%);
+  filter: blur(15px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.gift-star-burst-aura.burst {
+  opacity: 1;
+  animation: burstExpand 1.2s ease-out forwards;
+}
+
+@keyframes burstExpand {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* ==========================================================================
+   MOUNTAIN RAILWAY TUNNEL CINEMATIC TRANSITION (STEP 3)
+   ========================================================================== */
+
+.mountain-tunnel-viewport {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #0a0f1d 0%, #03060d 75%, #010206 100%);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 800px;
+  z-index: var(--z-modal);
+  opacity: 1;
+  transition: opacity 0.8s ease;
+}
+
+.tunnel-depth-wrapper {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 3D Stone Tunnel Arches scaling outward */
+.tunnel-stone-arch {
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  border-radius: 50% 50% 12% 12%;
+  border: 45px solid #1e293b;
+  border-top-color: #334155;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.95), 0 0 80px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  transform-origin: center center;
+  animation: tunnelArchRush 3.2s cubic-bezier(0.2, 0, 0.3, 1) infinite;
+}
+
+.arch-ring-1 { animation-delay: 0s; }
+.arch-ring-2 { animation-delay: 0.64s; }
+.arch-ring-3 { animation-delay: 1.28s; }
+.arch-ring-4 { animation-delay: 1.92s; }
+.arch-ring-5 { animation-delay: 2.56s; }
+
+@keyframes tunnelArchRush {
+  0% {
+    transform: translateZ(-900px) scale(0.12);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateZ(350px) scale(3.2);
+    opacity: 0;
+  }
+}
+
+/* Rugged Stone Walls on Left and Right */
+.tunnel-rock-wall {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.wall-left {
+  left: 0;
+  background: linear-gradient(to right, #050811 0%, #0d1527 50%, rgba(13, 21, 39, 0) 100%),
+              radial-gradient(ellipse at left, rgba(212, 175, 55, 0.15) 0%, transparent 60%);
+  transform-origin: left center;
+  transform: rotateY(35deg);
+}
+
+.wall-right {
+  right: 0;
+  background: linear-gradient(to left, #050811 0%, #0d1527 50%, rgba(13, 21, 39, 0) 100%),
+              radial-gradient(ellipse at right, rgba(212, 175, 55, 0.15) 0%, transparent 60%);
+  transform-origin: right center;
+  transform: rotateY(-35deg);
+}
+
+.tunnel-vault-ceiling {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 25%;
+  background: linear-gradient(to bottom, #020409 0%, rgba(5, 10, 22, 0) 100%);
+  z-index: 2;
+}
+
+/* Track bed perspective running beneath */
+.tunnel-track-perspective {
+  position: absolute;
+  bottom: 0;
+  left: 5%;
+  right: 5%;
+  height: 40%;
+  perspective: 450px;
+  transform-style: preserve-3d;
+  overflow: hidden;
+  z-index: 3;
+}
+
+.tunnel-steel-rail {
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  width: 6px;
+  background: linear-gradient(to bottom, #475569 0%, #cbd5e1 50%, #94a3b8 100%);
+  box-shadow: 0 0 12px rgba(254, 240, 138, 0.5);
+}
+
+.rail-left {
+  left: 30%;
+  transform: rotate(22deg);
+  transform-origin: top center;
+}
+
+.rail-right {
+  right: 30%;
+  transform: rotate(-22deg);
+  transform-origin: top center;
+}
+
+.tunnel-wooden-ties {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 18px,
+    #1c1917 18px,
+    #292524 24px,
+    #0c0a09 26px
+  );
+  animation: trackTiesRush 0.25s linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes trackTiesRush {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(26px); }
+}
+
+/* Flickering Amber Wall Lanterns */
+.tunnel-wall-lantern {
+  position: absolute;
+  width: 18px;
+  height: 32px;
+  background: #78350f;
+  border: 1px solid #d97706;
+  border-radius: 3px;
+  z-index: 4;
+}
+
+.lantern-l1 { left: 8%; top: 40%; }
+.lantern-r1 { right: 8%; top: 40%; }
+.lantern-l2 { left: 16%; top: 48%; }
+.lantern-r2 { right: 16%; top: 48%; }
+
+.lantern-light-cone {
+  position: absolute;
+  inset: -25px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.85) 0%, rgba(245, 158, 11, 0.3) 50%, transparent 80%);
+  border-radius: 50%;
+  filter: blur(8px);
+  animation: lanternAmberFlicker 0.2s ease-in-out infinite alternate;
+}
+
+@keyframes lanternAmberFlicker {
+  0% { opacity: 0.75; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1.08); }
+}
+
+/* Speed streaks zooming past */
+.tunnel-speed-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.streak-particle {
+  position: absolute;
+  background: linear-gradient(to bottom, rgba(254, 240, 138, 0.9), transparent);
+  width: 2px;
+  height: 60px;
+  opacity: 0.8;
+  animation: particleStreakRush 0.5s linear infinite;
+}
+
+.p1 { left: 25%; top: 15%; animation-delay: 0.05s; }
+.p2 { left: 75%; top: 20%; animation-delay: 0.15s; }
+.p3 { left: 40%; top: 35%; animation-delay: 0.25s; }
+.p4 { left: 60%; top: 30%; animation-delay: 0.35s; }
+.p5 { left: 20%; top: 60%; animation-delay: 0.12s; }
+.p6 { left: 80%; top: 65%; animation-delay: 0.22s; }
+.p7 { left: 50%; top: 75%; animation-delay: 0.38s; }
+.p8 { left: 35%; top: 80%; animation-delay: 0.45s; }
+
+@keyframes particleStreakRush {
+  0% {
+    transform: scale(0.2) translate(0, 0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.2) translate(var(--dx, 20px), 120px);
+    opacity: 0;
+  }
+}
+
+/* North Pole Station Portal (Light at end of the tunnel) */
+.tunnel-exit-portal {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #fef08a 35%, #eab308 65%, transparent 85%);
+  box-shadow: 0 0 60px rgba(254, 240, 138, 0.9), 0 0 120px rgba(234, 179, 8, 0.8);
+  z-index: 6;
+  transform: scale(1);
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
+  pointer-events: none;
+}
+
+.tunnel-exit-portal.blooming {
+  transform: scale(45);
+  opacity: 1;
+}
+
+.tunnel-hud-banner {
+  position: absolute;
+  top: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+  background: rgba(5, 10, 22, 0.7);
+  padding: 0.75rem 1.75rem;
+  border-radius: 30px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  backdrop-filter: blur(8px);
+}
+
+.tunnel-hud-badge {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--color-gold-champagne);
+  margin-bottom: 0.25rem;
+}
+
+.tunnel-hud-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(254, 240, 138, 0.7);
+}
+
+.tunnel-hud-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0.25rem 0 0 0;
+}
+
+/* ==========================================================================
+   PARTICIPANT ID REVEAL POP ANIMATIONS (STEP 2)
+   ========================================================================== */
+@keyframes modalWindowPop {
+  0% { transform: scale(0.85); opacity: 0; }
+  60% { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes idCardPop {
+  0% { transform: scale(0.9); opacity: 0; filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.4)); }
+  70% { transform: scale(1.04); filter: drop-shadow(0 0 35px rgba(254, 240, 138, 0.95)); }
+  100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 25px rgba(212, 175, 55, 0.6)); }
+}
+
+@keyframes pulseGlowBtn {
+  0%, 100% {
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.65);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(254, 240, 138, 0.95), 0 0 20px rgba(234, 179, 8, 0.8);
+    transform: scale(1.02);
+  }
+}
+

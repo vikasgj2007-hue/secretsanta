@@ -1,0 +1,442 @@
+/* ==========================================================================
+   MAIN GLOBAL STYLES & LAYOUT
+   ========================================================================== */
+
+@import './variables.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+  background-color: var(--color-midnight);
+  color: var(--color-snow-soft);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings — Playfair Display STRICT */
+h1, h2, h3, h4, h5, h6,
+.font-display,
+.cinematic-title,
+.section-title,
+.modal-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-snow-white);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* UI / Body / Buttons / Inputs — Poppins STRICT */
+p, span, label, input, select, textarea, button, table, td, th, .font-ui {
+  font-family: var(--font-ui);
+}
+
+/* App Root Container */
+#app {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fixed Background World Layers */
+.world-backdrop {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-background);
+  overflow: hidden;
+}
+
+.sky-gradient {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 15%, #0d1a3a 0%, #081024 45%, #040814 100%);
+}
+
+#stars-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-canvas-stars);
+}
+
+#snow-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-canvas-snow);
+}
+
+/* Scenic Photo Backdrop */
+.scenery-photo-layer {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/landing_castle_winter.jpg');
+  background-position: center bottom;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.88;
+  filter: contrast(1.05) brightness(0.95);
+  transition: opacity var(--transition-slow);
+}
+
+/* Soft vignette & gradient overlay for text readability */
+.scenery-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(5, 10, 22, 0.25) 0%, rgba(5, 10, 22, 0.75) 85%, rgba(5, 10, 22, 0.95) 100%),
+              linear-gradient(to bottom, rgba(5, 10, 22, 0.8) 0%, rgba(5, 10, 22, 0.15) 35%, rgba(5, 10, 22, 0.45) 70%, rgba(5, 10, 22, 0.92) 100%);
+  z-index: var(--z-scenery-overlay);
+}
+
+/* ==========================================================================
+   NAVIGATION / HEADER
+   ========================================================================== */
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  padding: 0 clamp(1rem, 3vw, 3rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: var(--z-header);
+  background: linear-gradient(to bottom, rgba(5, 10, 22, 0.85) 0%, rgba(5, 10, 22, 0.3) 70%, transparent 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+/* Sound Toggle Button */
+.sound-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--glass-bg-subtle);
+  border: 1px solid var(--glass-border);
+  color: var(--color-snow-soft);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(10px);
+}
+
+.sound-toggle-btn:hover {
+  background: var(--glass-bg-elevated);
+  border-color: var(--color-gold-border);
+  color: var(--color-gold-light);
+  transform: translateY(-1px);
+}
+
+.sound-icon-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-snow-dark);
+  transition: background var(--transition-fast);
+}
+
+.sound-toggle-btn.active .sound-icon-pulse {
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+/* College Logo & Identity (Top Right) — Seamlessly Integrated */
+.college-brand-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform var(--transition-fast), filter var(--transition-fast);
+  box-shadow: none;
+  flex-shrink: 0;
+  outline: none;
+}
+
+.college-brand-btn:hover {
+  background: transparent;
+  transform: translateY(-1px);
+  filter: brightness(1.15) drop-shadow(0 0 10px rgba(255, 255, 255, 0.25));
+  box-shadow: none;
+}
+
+.college-brand-logo-img {
+  height: 48px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7));
+}
+
+/* Modal and Inner Page Logo Banner */
+.college-modal-brand-banner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.college-modal-logo-img {
+  height: 40px;
+  width: auto;
+  max-width: 190px;
+  object-fit: contain;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+}
+
+.header-user-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  background: var(--glass-bg-card);
+  border: 1px solid var(--color-gold-border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  color: var(--color-gold-light);
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   BUTTONS (Frosted Christmas Styling)
+   ========================================================================== */
+
+.btn:disabled, button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  filter: grayscale(20%);
+}
+
+.button-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fef08a;
+  border-radius: 50%;
+  animation: buttonSpin 0.75s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes buttonSpin {
+  to { transform: rotate(360deg); }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.85rem 1.85rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:active {
+  transform: scale(0.97) translateY(1px);
+}
+
+/* Primary Button (Warm Gold / Frosted Gold) */
+.btn-primary {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.9) 0%, rgba(180, 83, 9, 0.95) 100%);
+  color: #fff;
+  border: 1px solid rgba(254, 240, 138, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 16px rgba(234, 179, 8, 0.2);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.95) 0%, rgba(197, 27, 41, 0.9) 100%);
+  border-color: rgba(254, 240, 138, 0.7);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), 0 0 24px rgba(234, 179, 8, 0.35);
+  transform: translateY(-2px);
+}
+
+/* Secondary Button (Frosted White / Midnight Glass) */
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-snow-white);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+/* Crimson Festive Button */
+.btn-crimson {
+  background: linear-gradient(135deg, var(--color-crimson) 0%, var(--color-crimson-dark) 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 18px rgba(185, 28, 28, 0.35);
+}
+
+.btn-crimson:hover {
+  background: linear-gradient(135deg, #e11d48 0%, var(--color-crimson) 100%);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 6px 24px rgba(185, 28, 28, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Train Boarding Large CTA */
+.btn-board-train {
+  font-size: var(--text-base);
+  padding: 1.15rem 2.5rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #991b1b 0%, #1e3a8a 50%, #064e3b 100%);
+  background-size: 200% 200%;
+  color: #fff;
+  border: 1px solid var(--color-gold-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(234, 179, 8, 0.25);
+  animation: gradientShift 6s ease infinite;
+}
+
+.btn-board-train:hover {
+  border-color: var(--color-gold-champagne);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(234, 179, 8, 0.45);
+  transform: translateY(-3px) scale(1.02);
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ==========================================================================
+   TOAST NOTIFICATION SYSTEM
+   ========================================================================== */
+
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: var(--z-toast);
+  pointer-events: none;
+  max-width: 380px;
+}
+
+.toast {
+  pointer-events: auto;
+  background: var(--glass-bg-elevated);
+  border: 1px solid var(--glass-border);
+  padding: 0.9rem 1.25rem;
+  border-radius: var(--radius-md);
+  color: var(--color-snow-white);
+  font-size: var(--text-sm);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: all var(--transition-fast);
+}
+
+.toast.toast-success {
+  border-left: 4px solid #22c55e;
+}
+
+.toast.toast-error {
+  border-left: 4px solid var(--color-crimson);
+}
+
+.toast.toast-info {
+  border-left: 4px solid var(--color-gold);
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.toast.hiding {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+/* ==========================================================================
+   GLOBAL DEPARTMENT CREDIT
+   Subtle, elegant university department credit anchored to bottom-right
+   ========================================================================== */
+
+.department-credit {
+  position: fixed;
+  bottom: 14px;
+  right: 22px;
+  z-index: var(--z-credit);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: var(--font-display);
+  font-size: clamp(0.72rem, 0.68rem + 0.2vw, 0.82rem);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: rgba(254, 240, 138, 0.78);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 10px rgba(5, 10, 22, 0.75);
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0.85;
+  transition: opacity var(--transition-normal);
+}

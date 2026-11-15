@@ -1,0 +1,43 @@
+# ==============================================================================
+# THE EVERGREEN EXPRESS — RENDER DEPLOYMENT BLUEPRINT
+# ==============================================================================
+services:
+  - type: web
+    name: the-evergreen-express
+    runtime: node
+    plan: free
+    region: singapore # or oregon / frankfurt
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_SSL_STRICT
+        value: "false"
+      - key: DATABASE_URL
+        sync: false # Set privately in Render dashboard (Supabase Session Pooler URI)
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_SECURE
+        value: "true"
+      - key: SMTP_USER
+        sync: false # Dedicated Gmail for OTP delivery
+      - key: SMTP_APP_PASSWORD
+        sync: false # 16-character Google App Password
+      - key: SMTP_FROM
+        value: "THE EVERGREEN EXPRESS"
+      - key: ADMIN_DEFAULT_USERNAME
+        value: admin
+      - key: ADMIN_DEFAULT_PASSWORD
+        value: ChristmasAdmin2026!
+      - key: ADMIN_DEFAULT_EMAIL
+        value: admin@college.edu
+      - key: ENABLE_EMAIL_SIMULATOR
+        value: "false"
+

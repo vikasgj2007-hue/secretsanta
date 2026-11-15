@@ -1,0 +1,47 @@
+{
+  "name": "the-evergreen-express",
+  "version": "1.0.0",
+  "description": "THE EVERGREEN EXPRESS — A Secret Christmas Journey. Premium Faculty Secret Santa Website.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "server": "node server.js",
+    "dev": "vite",
+    "admin:password": "node scripts/change-admin-password.js",
+    "test:db": "node scripts/test-db.js",
+    "test:email": "node scripts/test-email.js",
+    "migrate": "node scripts/migrate.js",
+    "bundle:css": "esbuild src/styles/index.css --bundle --outfile=bundle.css --external:*.jpg",
+    "bundle:js": "esbuild src/main.js --bundle --outfile=bundle.js --format=iife --loader:.js=js",
+    "build:bundles": "npm run bundle:css && npm run bundle:js",
+    "build": "npm run build:bundles",
+    "preview": "vite preview",
+    "test": "node tests/backend.test.js",
+    "test:e2e": "node tests/e2e.test.js",
+    "test:otp": "node tests/otp.test.js",
+    "test:smtp": "node tests/smtp.test.js",
+    "test:multi-user": "node tests/multi_user_registration.test.js",
+    "test:lifecycle": "node tests/lifecycle_and_participants.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "canvas-confetti": "^1.9.4",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-session": "^1.18.1",
+    "nodemailer": "^10.5.0",
+    "pg": "^8.13.3",
+    "resend": "^6.38.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "vite": "^6.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

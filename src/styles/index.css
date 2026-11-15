@@ -1,0 +1,12 @@
+/* ==========================================================================
+   MASTER STYLESHEET AGGREGATOR
+   ========================================================================== */
+
+@import './variables.css';
+@import './main.css';
+@import './landing.css';
+@import './train.css';
+@import './dashboard.css';
+@import './admin.css';
+@import './modals.css';
+@import './responsive.css';

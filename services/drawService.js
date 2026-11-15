@@ -2,27 +2,81 @@ import crypto from 'crypto';
 import { getClient, query } from '../config/db.js';
 
 /**
- * Generates a single-cycle derangement using Sattolo's Algorithm with crypto.randomInt
+ * Generates a completely scrambled Secret Santa derangement
  * Guaranteed invariants:
- * 1. P(i) !== i for all i (zero self-assignments)
- * 2. Exactly one recipient per giver
- * 3. Exactly one giver per recipient
- * 4. Single connected cycle of length N
+ * 1. P(i) !== i for all i (strictly zero self-assignments)
+ * 2. Exactly one recipient per giver (1:1 bijection)
+ * 3. Exactly one giver per recipient (no two participants get the same recipient)
+ * 4. Mixed, non-sequential matching (avoids sequential chains like SS105 -> SS106)
  * Supports any N >= 2
  */
 export function sattoloDerangement(array) {
-  const result = [...array];
-  const n = result.length;
+  const n = array.length;
   if (n < 2) {
     throw new Error('At least 2 verified participants are required for a Secret Santa draw.');
   }
 
-  // Sattolo's algorithm variant: random index from 0 to i-1 (strictly < i)
-  for (let i = n - 1; i > 0; i--) {
-    const j = crypto.randomInt(0, i);
-    const temp = result[i];
-    result[i] = result[j];
-    result[j] = temp;
+  // Edge case N = 2: Only mutual exchange is possible (A -> B, B -> A)
+  if (n === 2) {
+    return [array[1], array[0]];
+  }
+
+  let result;
+  let isValid = false;
+  let attempts = 0;
+
+  while (!isValid && attempts < 500) {
+    attempts++;
+    result = [...array];
+
+    // Cryptographic Fisher-Yates full shuffle
+    for (let i = n - 1; i > 0; i--) {
+      const j = crypto.randomInt(0, i + 1);
+      const temp = result[i];
+      result[i] = result[j];
+      result[j] = temp;
+    }
+
+    // Check 1: Strictly zero self-assignments (nobody gets themselves)
+    let hasSelf = false;
+    for (let i = 0; i < n; i++) {
+      const giverId = array[i].id !== undefined ? array[i].id : array[i];
+      const recId = result[i].id !== undefined ? result[i].id : result[i];
+      if (giverId === recId) {
+        hasSelf = true;
+        break;
+      }
+    }
+    if (hasSelf) continue;
+
+    // Check 2: Avoid predictable adjacent sequence (e.g. everyone getting i+1) when N >= 4
+    if (n >= 4) {
+      let sequentialMatches = 0;
+      for (let i = 0; i < n; i++) {
+        const nextId = array[(i + 1) % n].id !== undefined ? array[(i + 1) % n].id : array[(i + 1) % n];
+        const recId = result[i].id !== undefined ? result[i].id : result[i];
+        if (recId === nextId) {
+          sequentialMatches++;
+        }
+      }
+      // Re-roll if majority of matches are simply the next sequential person
+      if (sequentialMatches >= Math.max(2, Math.floor(n / 2))) {
+        continue;
+      }
+    }
+
+    isValid = true;
+  }
+
+  // High-reliability fallback (guaranteed single cycle if attempts exceed)
+  if (!isValid) {
+    result = [...array];
+    for (let i = n - 1; i > 0; i--) {
+      const j = crypto.randomInt(0, i);
+      const temp = result[i];
+      result[i] = result[j];
+      result[j] = temp;
+    }
   }
 
   return result;

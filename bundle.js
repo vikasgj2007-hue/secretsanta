@@ -1116,10 +1116,11 @@
           try {
             const res = await authService.requestRegistrationOtp(fullName, email, password, confirmPassword, wishlist, dept);
             clearTimeout(slowNoticeTimer);
-            showToast("Verification code dispatched!", "info");
+            showToast(res.isSimulated ? "Verification code generated!" : "Verification code dispatched!", "info");
             renderContent("verify-otp", {
               email,
               maskedEmail: res.maskedEmail || email,
+              simulatedOtp: res.simulatedOtp,
               formData: { fullName, email, password, confirmPassword, giftPreference: wishlist, department: dept }
             });
           } catch (err) {
@@ -1130,7 +1131,7 @@
           }
         };
       } else if (currentMode === "verify-otp") {
-        const { email, maskedEmail, formData } = extraData;
+        const { email, maskedEmail, simulatedOtp, formData } = extraData;
         let countdownSeconds = 60;
         modalBackdrop.innerHTML = `
         <div class="modal-window" style="max-width: 480px; text-align: center; border: 2px solid var(--color-gold-champagne); background: radial-gradient(circle at top, rgba(17, 30, 56, 0.98), rgba(5, 10, 22, 0.99));">
@@ -1153,6 +1154,12 @@
               ${maskedEmail}
             </span>
           </div>
+
+          ${simulatedOtp ? `
+            <div style="background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 0.65rem 0.85rem; margin-bottom: 1.15rem; color: #86efac; font-size: 13px;">
+              \u2728 <strong>Cloud Verification:</strong> Your code is <strong style="font-size: 1.2rem; color: #fef08a; letter-spacing: 2px;">${simulatedOtp}</strong> (Auto-filled below)
+            </div>
+          ` : ""}
 
           <form id="form-verify-otp">
             <div class="form-group" style="margin-bottom: 1.25rem;">
@@ -1223,6 +1230,10 @@
           }, 1e3);
         };
         startTimer();
+        if (simulatedOtp) {
+          const otpInput = document.getElementById("otp-input");
+          if (otpInput) otpInput.value = simulatedOtp;
+        }
         resendBtn.onclick = async () => {
           try {
             resendBtn.disabled = true;
@@ -1232,6 +1243,10 @@
             resendBtn.disabled = false;
             resendBtn.textContent = "Resend Code \u{1F504}";
             startTimer();
+            if (simulatedOtp) {
+              const otpInput = document.getElementById("otp-input");
+              if (otpInput) otpInput.value = simulatedOtp;
+            }
           } catch (err) {
             showToast(err.message, "error");
             resendBtn.disabled = false;

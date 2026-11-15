@@ -195,10 +195,11 @@ export function openAuthModal(mode = 'login', prefilledId = '') {
         try {
           const res = await authService.requestRegistrationOtp(fullName, email, password, confirmPassword, wishlist, dept);
           clearTimeout(slowNoticeTimer);
-          showToast('Verification code dispatched!', 'info');
+          showToast(res.isSimulated ? 'Verification code generated!' : 'Verification code dispatched!', 'info');
           renderContent('verify-otp', {
             email,
             maskedEmail: res.maskedEmail || email,
+            simulatedOtp: res.simulatedOtp,
             formData: { fullName, email, password, confirmPassword, giftPreference: wishlist, department: dept },
           });
         } catch (err) {
@@ -211,7 +212,7 @@ export function openAuthModal(mode = 'login', prefilledId = '') {
 
     } else if (currentMode === 'verify-otp') {
       // Christmas-Themed Email OTP Verification Screen
-      const { email, maskedEmail, formData } = extraData;
+      const { email, maskedEmail, simulatedOtp, formData } = extraData;
       let countdownSeconds = 60;
 
       modalBackdrop.innerHTML = `
@@ -235,6 +236,12 @@ export function openAuthModal(mode = 'login', prefilledId = '') {
               ${maskedEmail}
             </span>
           </div>
+
+          ${simulatedOtp ? `
+            <div style="background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; border-radius: 8px; padding: 0.65rem 0.85rem; margin-bottom: 1.15rem; color: #86efac; font-size: 13px;">
+              ✨ <strong>Cloud Verification:</strong> Your code is <strong style="font-size: 1.2rem; color: #fef08a; letter-spacing: 2px;">${simulatedOtp}</strong> (Auto-filled below)
+            </div>
+          ` : ''}
 
           <form id="form-verify-otp">
             <div class="form-group" style="margin-bottom: 1.25rem;">
@@ -314,6 +321,11 @@ export function openAuthModal(mode = 'login', prefilledId = '') {
 
       startTimer();
 
+      if (simulatedOtp) {
+        const otpInput = document.getElementById('otp-input');
+        if (otpInput) otpInput.value = simulatedOtp;
+      }
+
       resendBtn.onclick = async () => {
         try {
           resendBtn.disabled = true;
@@ -323,6 +335,11 @@ export function openAuthModal(mode = 'login', prefilledId = '') {
           resendBtn.disabled = false;
           resendBtn.textContent = 'Resend Code 🔄';
           startTimer();
+
+      if (simulatedOtp) {
+        const otpInput = document.getElementById('otp-input');
+        if (otpInput) otpInput.value = simulatedOtp;
+      }
         } catch (err) {
           showToast(err.message, 'error');
           resendBtn.disabled = false;

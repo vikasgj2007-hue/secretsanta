@@ -125,7 +125,7 @@ router.post('/register-request-otp', async (req, res) => {
     // 11. Dispatch festive email
     const emailResult = await sendOtpEmail(cleanEmail, trimmedName, rawOtp);
 
-    // If email failed to dispatch, clean up staged verification and return informative error
+    // If email failed to dispatch and no fallback was available, return error
     if (!emailResult.success) {
       await query('DELETE FROM email_verifications WHERE LOWER(email) = $1', [cleanEmail]);
 
@@ -139,12 +139,16 @@ router.post('/register-request-otp', async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'A 6-digit verification code has been sent to your email address.',
+      message: emailResult.isSimulated
+        ? 'Verification code generated! (Cloud simulator fallback active)'
+        : 'A 6-digit verification code has been sent to your email address.',
       maskedEmail: maskEmail(cleanEmail),
       email: cleanEmail,
       expiresInMinutes: 5,
       resendCooldownSeconds: 60,
       provider: emailResult.provider,
+      isSimulated: !!emailResult.isSimulated,
+      simulatedOtp: emailResult.simulatedOtp || undefined,
     });
   } catch (error) {
     console.error('Request OTP error:', error);

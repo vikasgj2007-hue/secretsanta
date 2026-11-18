@@ -3753,6 +3753,41 @@ button:disabled {
   resize: vertical;
   min-height: 80px;
 }
+.password-field-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.password-field-wrapper .form-input {
+  padding-right: 2.75rem;
+}
+.password-toggle-btn {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 0.35rem;
+  margin: 0;
+  cursor: pointer;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+  line-height: 0;
+}
+.password-toggle-btn:hover {
+  color: #f1f5f9;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.password-toggle-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 1px;
+}
 .form-footer-action {
   margin-top: 1.75rem;
   display: flex;

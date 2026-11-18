@@ -945,6 +945,24 @@
   var databaseService = new DatabaseService();
 
   // src/components/authModals.js
+  var EYE_ICONS = {
+    show: `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`,
+    hide: `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>`
+  };
+  function setupPasswordToggle(btnId, inputId) {
+    const btn = document.getElementById(btnId);
+    const input = document.getElementById(inputId);
+    if (!btn || !input) return;
+    btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+      btn.innerHTML = isPassword ? EYE_ICONS.hide : EYE_ICONS.show;
+      btn.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
+      btn.setAttribute("title", isPassword ? "Hide password" : "Show password");
+    };
+  }
   var resendInterval = null;
   function openAuthModal(mode = "login", prefilledId = "") {
     let modalBackdrop = document.getElementById("auth-modal-backdrop");
@@ -994,7 +1012,12 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="login-password">Password</label>
-              <input type="password" id="login-password" class="form-input" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" required autocomplete="current-password" />
+              <div class="password-field-wrapper">
+                <input type="password" id="login-password" class="form-input" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" required autocomplete="current-password" />
+                <button type="button" class="password-toggle-btn" id="toggle-login-password" aria-label="Show password" title="Show password">
+                  ${EYE_ICONS.show}
+                </button>
+              </div>
             </div>
             <div class="form-footer-action">
               <button type="submit" class="btn btn-primary" id="btn-submit-login" style="width: 100%;">
@@ -1009,6 +1032,7 @@
       `;
         document.getElementById("modal-close-x").onclick = closeModal;
         document.getElementById("link-goto-register").onclick = () => renderContent("register");
+        setupPasswordToggle("toggle-login-password", "login-password");
         const loginForm = document.getElementById("form-faculty-login");
         loginForm.onsubmit = async (e) => {
           e.preventDefault();
@@ -1059,11 +1083,21 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
               <div class="form-group">
                 <label class="form-label" for="reg-password">Password</label>
-                <input type="password" id="reg-password" class="form-input" placeholder="Min 6 chars" minlength="6" required />
+                <div class="password-field-wrapper">
+                  <input type="password" id="reg-password" class="form-input" placeholder="Min 6 chars" minlength="6" required />
+                  <button type="button" class="password-toggle-btn" id="toggle-reg-password" aria-label="Show password" title="Show password">
+                    ${EYE_ICONS.show}
+                  </button>
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label" for="reg-confirm-password">Confirm Password</label>
-                <input type="password" id="reg-confirm-password" class="form-input" placeholder="Re-enter password" minlength="6" required />
+                <div class="password-field-wrapper">
+                  <input type="password" id="reg-confirm-password" class="form-input" placeholder="Re-enter password" minlength="6" required />
+                  <button type="button" class="password-toggle-btn" id="toggle-reg-confirm-password" aria-label="Show password" title="Show password">
+                    ${EYE_ICONS.show}
+                  </button>
+                </div>
               </div>
             </div>
             <div class="form-group">
@@ -1083,6 +1117,8 @@
       `;
         document.getElementById("modal-close-x").onclick = closeModal;
         document.getElementById("link-goto-login").onclick = () => renderContent("login");
+        setupPasswordToggle("toggle-reg-password", "reg-password");
+        setupPasswordToggle("toggle-reg-confirm-password", "reg-confirm-password");
         const regForm = document.getElementById("form-faculty-register");
         regForm.onsubmit = async (e) => {
           e.preventDefault();
@@ -1327,7 +1363,12 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="admin-password">Administrator Password</label>
-              <input type="password" id="admin-password" class="form-input" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" required autocomplete="current-password" />
+              <div class="password-field-wrapper">
+                <input type="password" id="admin-password" class="form-input" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" required autocomplete="current-password" />
+                <button type="button" class="password-toggle-btn" id="toggle-admin-password" aria-label="Show password" title="Show password">
+                  ${EYE_ICONS.show}
+                </button>
+              </div>
             </div>
             <div class="form-footer-action">
               <button type="submit" class="btn btn-primary" id="btn-submit-admin" style="width: 100%; background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);">
@@ -1342,6 +1383,7 @@
       `;
         document.getElementById("modal-close-x").onclick = closeModal;
         document.getElementById("link-goto-faculty").onclick = () => renderContent("login");
+        setupPasswordToggle("toggle-admin-password", "admin-password");
         const adminForm = document.getElementById("form-admin-login");
         adminForm.onsubmit = async (e) => {
           e.preventDefault();
@@ -3675,7 +3717,12 @@
 
       <div class="form-group" style="margin-bottom: 1rem;">
         <label class="form-label" style="font-size: 12px;">Administrator Password</label>
-        <input type="password" id="reset-admin-pwd" class="form-input" placeholder="Enter admin password to authorize" ${isLive ? "disabled" : ""} />
+        <div class="password-field-wrapper">
+          <input type="password" id="reset-admin-pwd" class="form-input" placeholder="Enter admin password to authorize" ${isLive ? "disabled" : ""} />
+          <button type="button" class="password-toggle-btn" id="toggle-reset-admin-pwd" aria-label="Show password" title="Show password" ${isLive ? "disabled" : ""}>
+            ${EYE_ICONS.show}
+          </button>
+        </div>
       </div>
 
       <div class="form-group" style="margin-bottom: 1.5rem;">
@@ -3698,6 +3745,7 @@
   `;
     document.getElementById("btn-close-reset-modal").onclick = () => modal.classList.remove("active");
     document.getElementById("btn-cancel-reset").onclick = () => modal.classList.remove("active");
+    setupPasswordToggle("toggle-reset-admin-pwd", "reset-admin-pwd");
     const loadSnapshots = async () => {
       try {
         const backups = await databaseService.getBackups();

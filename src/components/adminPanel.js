@@ -7,6 +7,7 @@
 import { authService } from '../services/authService.js';
 import { databaseService } from '../services/databaseService.js';
 import { showToast } from '../main.js';
+import { setupPasswordToggle, EYE_ICONS } from './authModals.js';
 
 export async function renderAdminPanel(container, currentUser) {
   let dashboardData;
@@ -548,7 +549,12 @@ function showResetModal(eventState, onResetSuccess) {
 
       <div class="form-group" style="margin-bottom: 1rem;">
         <label class="form-label" style="font-size: 12px;">Administrator Password</label>
-        <input type="password" id="reset-admin-pwd" class="form-input" placeholder="Enter admin password to authorize" ${isLive ? 'disabled' : ''} />
+        <div class="password-field-wrapper">
+          <input type="password" id="reset-admin-pwd" class="form-input" placeholder="Enter admin password to authorize" ${isLive ? 'disabled' : ''} />
+          <button type="button" class="password-toggle-btn" id="toggle-reset-admin-pwd" aria-label="Show password" title="Show password" ${isLive ? 'disabled' : ''}>
+            ${EYE_ICONS.show}
+          </button>
+        </div>
       </div>
 
       <div class="form-group" style="margin-bottom: 1.5rem;">
@@ -572,6 +578,7 @@ function showResetModal(eventState, onResetSuccess) {
 
   document.getElementById('btn-close-reset-modal').onclick = () => modal.classList.remove('active');
   document.getElementById('btn-cancel-reset').onclick = () => modal.classList.remove('active');
+  setupPasswordToggle('toggle-reset-admin-pwd', 'reset-admin-pwd');
 
   // Load and display recent snapshots
   const loadSnapshots = async () => {

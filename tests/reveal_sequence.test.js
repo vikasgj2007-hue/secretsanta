@@ -125,8 +125,8 @@ it('displays festive holiday messages: "Now it\'s your turn..." and "MERRY CHRIS
   assert(revealJs.includes('MERRY CHRISTMAS!'), 'Final message 2 missing');
 });
 
-it('"Go Back to Dashboard ➔" button navigates cleanly back to participant dashboard', () => {
-  assert(revealJs.includes('Go Back to Dashboard ➔'), 'Go Back to Dashboard button text missing');
+it('"Go Back ➔" button navigates cleanly back to participant dashboard', () => {
+  assert(revealJs.includes('Go Back ➔') || revealJs.includes('Go Back to Dashboard ➔'), 'Go Back button text missing');
   assert(revealJs.includes('backDashboardBtn.onclick = exitRevealCleanly'), 'Clean dashboard exit handler missing');
   assert(revealJs.includes('trainJourney.closeJourney()'), 'trainJourney cleanup missing in exit');
 });

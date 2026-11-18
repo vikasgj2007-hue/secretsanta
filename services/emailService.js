@@ -112,7 +112,8 @@ export function createTransporter() {
   if (isGmail) {
     cachedTransporter = nodemailer.createTransport({
       service: 'gmail',
-      pool: false,
+      pool: true,
+      maxConnections: 3,
       auth: {
         user: config.smtpUser,
         pass: config.smtpPass,
@@ -126,7 +127,8 @@ export function createTransporter() {
       host: config.smtpHost,
       port: config.smtpPort,
       secure: config.smtpSecure,
-      pool: false,
+      pool: true,
+      maxConnections: 3,
       auth: {
         user: config.smtpUser,
         pass: config.smtpPass,

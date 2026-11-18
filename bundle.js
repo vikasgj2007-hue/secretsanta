@@ -2248,9 +2248,9 @@
 
             <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
               <button id="btn-view-dashboard" class="btn btn-primary" style="flex: 1; padding: 0.65rem 0.85rem; font-size: 0.92rem; font-weight: 600; box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);">
-                Go Back to Dashboard \u2794
+                Go Back \u2794
               </button>
-              <button id="btn-replay-reveal" class="btn btn-secondary" style="flex: 1; padding: 0.65rem 0.85rem; font-size: 0.92rem; font-weight: 600;">
+              <button id="btn-replay-reveal" class="btn btn-secondary" style="flex: 1; padding: 0.65rem 0.85rem; font-size: 0.92rem; font-weight: 600; color: #1e293b; background: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0, 0, 0, 0.2);">
                 Replay the Christmas Journey \u{1F504}
               </button>
             </div>

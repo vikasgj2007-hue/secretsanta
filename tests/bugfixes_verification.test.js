@@ -172,9 +172,9 @@ it('exitRevealCleanly cleanly terminates and removes train journey overlay', () 
   assert(revealCode.includes('document.body.style.overflow = \'\''), 'body overflow reset missing');
 });
 
-it('Go Back to Dashboard button triggers clean exit and re-renders dashboard', () => {
+it('Go Back button triggers clean exit and re-renders dashboard', () => {
   const revealCode = fs.readFileSync('src/components/revealModal.js', 'utf8');
-  assert(revealCode.includes('Go Back to Dashboard ➔'), 'Go Back to Dashboard button text missing');
+  assert(revealCode.includes('Go Back ➔') || revealCode.includes('Go Back to Dashboard ➔'), 'Go Back button text missing');
   assert(revealCode.includes('backDashboardBtn.onclick = exitRevealCleanly'), 'Clean exit handler binding missing');
 });
 

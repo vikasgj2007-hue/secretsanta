@@ -998,7 +998,7 @@
             </div>
             <div class="form-footer-action">
               <button type="submit" class="btn btn-primary" id="btn-submit-login" style="width: 100%;">
-                Board The Express
+                Login
               </button>
               <p class="form-switch-prompt">
                 Not registered yet? <button type="button" class="form-switch-link" id="link-goto-register">Register as Faculty</button>
@@ -1016,7 +1016,7 @@
           const password = document.getElementById("login-password").value;
           const submitBtn = document.getElementById("btn-submit-login");
           submitBtn.disabled = true;
-          submitBtn.innerHTML = '<span class="button-spinner"></span> Boarding The Express...';
+          submitBtn.innerHTML = '<span class="button-spinner"></span> Logging in...';
           try {
             const user = await authService.login(participantId, password);
             showToast(`Welcome aboard, ${user.name}!`, "success");
@@ -1024,7 +1024,7 @@
           } catch (err) {
             showToast(err.message, "error");
             submitBtn.disabled = false;
-            submitBtn.innerHTML = "Board The Express";
+            submitBtn.innerHTML = "Login";
           }
         };
       } else if (currentMode === "register") {

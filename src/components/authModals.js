@@ -64,7 +64,7 @@ export function openAuthModal(mode = 'login', prefilledId = '') {
             </div>
             <div class="form-footer-action">
               <button type="submit" class="btn btn-primary" id="btn-submit-login" style="width: 100%;">
-                Board The Express
+                Login
               </button>
               <p class="form-switch-prompt">
                 Not registered yet? <button type="button" class="form-switch-link" id="link-goto-register">Register as Faculty</button>
@@ -85,7 +85,7 @@ export function openAuthModal(mode = 'login', prefilledId = '') {
         const submitBtn = document.getElementById('btn-submit-login');
 
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="button-spinner"></span> Boarding The Express...';
+        submitBtn.innerHTML = '<span class="button-spinner"></span> Logging in...';
 
         try {
           const user = await authService.login(participantId, password);
@@ -94,7 +94,7 @@ export function openAuthModal(mode = 'login', prefilledId = '') {
         } catch (err) {
           showToast(err.message, 'error');
           submitBtn.disabled = false;
-          submitBtn.innerHTML = 'Board The Express';
+          submitBtn.innerHTML = 'Login';
         }
       };
 

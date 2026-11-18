@@ -266,7 +266,7 @@ class TrainJourneyController {
             Cancel
           </button>
           <button id="btn-board-express" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.75rem 2rem; box-shadow: 0 0 25px rgba(254, 240, 138, 0.6); flex: 2; min-width: 200px;">
-            BOARD THE EXPRESS 🚂
+            ENTER 🚂
           </button>
         </div>
       </div>

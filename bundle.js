@@ -3914,7 +3914,7 @@
       }
       return;
     }
-    const { eligibleCount, participants, lastAnnouncement, preview, siteUrl } = data;
+    const { eligibleCount, participants, lastAnnouncement, preview, siteUrl, smtpVerification } = data;
     let activeTab = "preview";
     let isSending = false;
     let sentList = /* @__PURE__ */ new Set();
@@ -3934,12 +3934,12 @@
           </div>
         </div>
 
-        <div style="flex: 1; min-width: 240px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 0.75rem 1rem;">
-          <div style="font-size: 11px; text-transform: uppercase; color: #86efac; font-weight: 700; letter-spacing: 1px;">
+        <div style="flex: 1; min-width: 240px; background: ${smtpVerification?.success ? "rgba(34, 197, 94, 0.1)" : "rgba(239, 68, 68, 0.12)"}; border: 1px solid ${smtpVerification?.success ? "rgba(34, 197, 94, 0.35)" : "rgba(239, 68, 68, 0.4)"}; border-radius: 8px; padding: 0.75rem 1rem;">
+          <div style="font-size: 11px; text-transform: uppercase; color: ${smtpVerification?.success ? "#86efac" : "#fca5a5"}; font-weight: 700; letter-spacing: 1px;">
             Email Delivery Integration
           </div>
           <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin-top: 4px;">
-            Live Event Notification (Gmail SMTP) \u2709\uFE0F
+            ${smtpVerification?.success ? `\u{1F7E2} SMTP Connected (${smtpVerification.user || "Ready"})` : `\u26A0\uFE0F SMTP Incomplete: ${smtpVerification?.error || "Check server credentials"}`}
           </div>
         </div>
       </div>
@@ -3972,12 +3972,15 @@
         </div>
 
         <!-- Send Test Email -->
-        <div style="display: flex; gap: 0.5rem; align-items: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 14px; margin-bottom: 1.25rem;">
-          <span style="font-size: 12px; color: #cbd5e1; white-space: nowrap;">Send sample test email to:</span>
-          <input type="email" id="input-test-email" class="form-input" placeholder="e.g. your-email@gmail.com" style="padding: 0.4rem 0.75rem; font-size: 12px; flex: 1;" />
-          <button id="btn-send-test-email" class="btn btn-secondary" style="font-size: 12px; padding: 0.45rem 0.85rem; white-space: nowrap;">
-            Send Test \u2709\uFE0F
-          </button>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 14px; margin-bottom: 1.25rem;">
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span style="font-size: 12px; color: #cbd5e1; white-space: nowrap;">Send sample test email to:</span>
+            <input type="email" id="input-test-email" class="form-input" placeholder="e.g. your-email@gmail.com" style="padding: 0.4rem 0.75rem; font-size: 12px; flex: 1;" />
+            <button id="btn-send-test-email" class="btn btn-secondary" style="font-size: 12px; padding: 0.45rem 0.85rem; white-space: nowrap;">
+              Send Test \u2709\uFE0F
+            </button>
+          </div>
+          <div id="test-email-feedback" style="margin-top: 0.5rem; display: none;"></div>
         </div>
       </div>
 
@@ -4001,7 +4004,13 @@
         if (isSent) {
           statusBadge = '<span style="color: #4ade80; font-weight: 600;">\u2713 Delivered</span>';
         } else if (isFailed) {
-          statusBadge = `<span style="color: #ef4444; font-weight: 600;" title="${failedMap.get(p.participantId)}">\u2715 Failed</span>`;
+          const errorMsg = failedMap.get(p.participantId) || "Delivery failed";
+          statusBadge = `
+                    <div>
+                      <span style="color: #ef4444; font-weight: 600;">\u2715 Failed</span>
+                      <div style="font-size: 11px; color: #fca5a5; margin-top: 3px; max-width: 260px; line-height: 1.3; word-break: break-word;">${errorMsg}</div>
+                    </div>
+                  `;
         }
         return `
                   <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
@@ -4077,15 +4086,29 @@
           }
           testBtn.disabled = true;
           testBtn.textContent = "Sending Test...";
+          const fb = document.getElementById("test-email-feedback");
+          if (fb) fb.style.display = "none";
           try {
             const res = await databaseService.sendAnnouncementSingle(null, testEmail);
             if (res.success) {
               showToast(`Test announcement delivered to ${testEmail}! Check your inbox.`, "success");
+              if (fb) {
+                fb.style.display = "block";
+                fb.innerHTML = `<div style="background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; border-radius: 6px; padding: 8px 12px; color: #86efac; font-size: 12px; margin-top: 6px;">\u2713 Test announcement successfully delivered to <strong>${testEmail}</strong> via ${res.provider || "SMTP"}!</div>`;
+              }
             } else {
               showToast(`Test failed: ${res.error || "Delivery failed"}`, "error");
+              if (fb) {
+                fb.style.display = "block";
+                fb.innerHTML = `<div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 8px 12px; color: #fca5a5; font-size: 12px; margin-top: 6px;"><strong>Delivery Error:</strong> ${res.error || "Delivery failed"}</div>`;
+              }
             }
           } catch (e) {
             showToast(`Test error: ${e.message}`, "error");
+            if (fb) {
+              fb.style.display = "block";
+              fb.innerHTML = `<div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 8px 12px; color: #fca5a5; font-size: 12px; margin-top: 6px;"><strong>Error:</strong> ${e.message}</div>`;
+            }
           } finally {
             testBtn.disabled = false;
             testBtn.textContent = "Send Test \u2709\uFE0F";
@@ -4133,14 +4156,29 @@
             const badge = document.getElementById(`status-badge-${p.participantId}`);
             if (badge) badge.innerHTML = '<span style="color: #4ade80; font-weight: 600;">\u2713 Delivered</span>';
           } else {
-            failedMap.set(p.participantId, res.error || "Delivery failed");
+            const errMsg = res.error || "Delivery failed";
+            failedMap.set(p.participantId, errMsg);
             const badge = document.getElementById(`status-badge-${p.participantId}`);
-            if (badge) badge.innerHTML = `<span style="color: #ef4444; font-weight: 600;" title="${res.error}">\u2715 Failed</span>`;
+            if (badge) {
+              badge.innerHTML = `
+              <div>
+                <span style="color: #ef4444; font-weight: 600;">\u2715 Failed</span>
+                <div style="font-size: 11px; color: #fca5a5; margin-top: 3px; max-width: 260px; line-height: 1.3; word-break: break-word;">${errMsg}</div>
+              </div>
+            `;
+            }
           }
         } catch (err) {
           failedMap.set(p.participantId, err.message);
           const badge = document.getElementById(`status-badge-${p.participantId}`);
-          if (badge) badge.innerHTML = `<span style="color: #ef4444; font-weight: 600;" title="${err.message}">\u2715 Failed</span>`;
+          if (badge) {
+            badge.innerHTML = `
+            <div>
+              <span style="color: #ef4444; font-weight: 600;">\u2715 Failed</span>
+              <div style="font-size: 11px; color: #fca5a5; margin-top: 3px; max-width: 260px; line-height: 1.3; word-break: break-word;">${err.message}</div>
+            </div>
+          `;
+          }
         }
       }
       isSending = false;

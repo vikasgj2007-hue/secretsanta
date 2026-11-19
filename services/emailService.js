@@ -115,30 +115,26 @@ export function createTransporter() {
   if (isGmail) {
     cachedTransporter = nodemailer.createTransport({
       service: 'gmail',
-      pool: true,
-      maxConnections: 3,
       auth: {
         user: config.smtpUser,
         pass: config.smtpPass,
       },
-      connectionTimeout: 4000,
-      greetingTimeout: 3000,
-      socketTimeout: 5000,
+      connectionTimeout: 30000,
+      greetingTimeout: 20000,
+      socketTimeout: 30000,
     });
   } else {
     cachedTransporter = nodemailer.createTransport({
       host: config.smtpHost,
       port: config.smtpPort,
       secure: config.smtpSecure,
-      pool: true,
-      maxConnections: 3,
       auth: {
         user: config.smtpUser,
         pass: config.smtpPass,
       },
-      connectionTimeout: 4000,
-      greetingTimeout: 3000,
-      socketTimeout: 5000,
+      connectionTimeout: 30000,
+      greetingTimeout: 20000,
+      socketTimeout: 30000,
       tls: {
         rejectUnauthorized: false,
       },
@@ -151,43 +147,85 @@ export function createTransporter() {
 
 /**
  * Verifies SMTP connection and authentication with the mail server.
+ * Tests primary configuration (port 465 SSL or custom) and falls back to port 587 STARTTLS for Gmail.
  * Useful for diagnostics, health checks, and test scripts.
  */
 export async function verifySmtpConnection() {
   const config = getEmailConfig();
-  if (config.provider === 'simulator') {
-    return {
-      success: true,
-      provider: 'simulator',
-      message: 'Email simulator active (offline mode).',
-    };
-  }
 
-  if (config.provider !== 'smtp') {
+  if (!config.smtpHost || !config.smtpUser || !config.smtpPass) {
+    const missing = [];
+    if (!config.smtpHost) missing.push('SMTP_HOST');
+    if (!config.smtpUser) missing.push('SMTP_USER');
+    if (!config.smtpPass) missing.push('SMTP_APP_PASSWORD');
     return {
       success: false,
+      configured: false,
       provider: 'none',
-      message: 'Gmail SMTP credentials are not configured in .env. Please set SMTP_USER and SMTP_APP_PASSWORD.',
+      error: `Missing credentials: ${missing.join(', ')}`,
+      userMessage: `SMTP is not configured on this server instance (Missing: ${missing.join(', ')}). Set these in your environment variables.`,
+      message: `SMTP is not configured on this server instance (Missing: ${missing.join(', ')}).`,
     };
   }
 
+  // 1. Try primary transporter
   try {
     const transporter = createTransporter();
+    if (!transporter) throw new Error('Could not create SMTP transporter');
     await transporter.verify();
     return {
       success: true,
+      configured: true,
       provider: 'smtp',
-      message: `Successfully authenticated with ${config.smtpHost}:${config.smtpPort} as ${config.smtpUser}.`,
+      user: getEmailStatus().smtpUserMasked,
+      host: config.smtpHost,
+      port: config.smtpPort,
+      message: `Successfully connected and authenticated with ${config.smtpHost}:${config.smtpPort} as ${getEmailStatus().smtpUserMasked}.`,
     };
   } catch (err) {
+    console.warn('Primary SMTP verification failed:', err.message);
+
+    // 2. If Gmail, try Port 587 STARTTLS
+    const isGmail = config.smtpHost.includes('gmail.com') || config.smtpUser.toLowerCase().endsWith('@gmail.com');
+    if (isGmail) {
+      try {
+        const fallback587 = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: config.smtpUser,
+            pass: config.smtpPass,
+          },
+          connectionTimeout: 20000,
+          greetingTimeout: 15000,
+          socketTimeout: 20000,
+        });
+        await fallback587.verify();
+        return {
+          success: true,
+          configured: true,
+          provider: 'smtp_587',
+          user: getEmailStatus().smtpUserMasked,
+          host: 'smtp.gmail.com',
+          port: 587,
+          message: `Successfully connected to smtp.gmail.com:587 STARTTLS as ${getEmailStatus().smtpUserMasked}.`,
+        };
+      } catch (retryErr) {
+        console.warn('Port 587 fallback verification failed:', retryErr.message);
+      }
+    }
+
     const errorDetails = formatSmtpError(err);
     return {
       success: false,
+      configured: true,
       provider: 'smtp',
       error: err.message,
-      code: err.code,
+      code: err.code || 'UNKNOWN',
       userMessage: errorDetails.userMessage,
       hint: errorDetails.hint,
+      message: `SMTP verification failed: ${err.message}`,
     };
   }
 }
@@ -732,28 +770,76 @@ export async function sendAnnouncementEmail(email, fullName, participantId, site
   if (config.smtpHost && config.smtpUser && config.smtpPass) {
     try {
       const transporter = createTransporter();
-      if (transporter) {
-        const info = await transporter.sendMail({
-          from: config.emailFrom,
-          to: email,
-          subject,
-          text,
-          html,
-        });
-
-        deliveryStatus = 'sent';
-        activeProvider = 'smtp';
-        errorMessage = null;
-        console.log(`✉️ Live announcement dispatched via Gmail SMTP to ${email} (MessageID: ${info.messageId})`);
+      if (!transporter) {
+        throw new Error('SMTP transporter could not be created');
       }
+      const info = await transporter.sendMail({
+        from: config.emailFrom,
+        to: email,
+        subject,
+        text,
+        html,
+      });
+
+      deliveryStatus = 'sent';
+      activeProvider = 'smtp';
+      errorMessage = null;
+      console.log(`✉️ Live announcement dispatched via Gmail SMTP to ${email} (MessageID: ${info.messageId})`);
     } catch (smtpErr) {
-      errorMessage = smtpErr.message;
-      console.warn(`SMTP announcement delivery attempt failed for ${email}:`, smtpErr.message);
+      errorMessage = `SMTP delivery error (${smtpErr.code || 'TIMEOUT/NETWORK'}): ${smtpErr.message}`;
+      console.warn(`[Announcement SMTP Error for ${email}]:`, smtpErr.message);
+
+      // Attempt automatic fallback to Port 587 STARTTLS if primary attempt failed
+      const isGmail = config.smtpHost.includes('gmail.com') || config.smtpUser.toLowerCase().endsWith('@gmail.com');
+      if (isGmail) {
+        try {
+          console.log(`Retrying delivery to ${email} via Gmail Port 587 STARTTLS...`);
+          const fallback587 = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            auth: {
+              user: config.smtpUser,
+              pass: config.smtpPass,
+            },
+            connectionTimeout: 30000,
+            greetingTimeout: 20000,
+            socketTimeout: 30000,
+          });
+
+          const fallbackInfo = await fallback587.sendMail({
+            from: config.emailFrom,
+            to: email,
+            subject,
+            text,
+            html,
+          });
+
+          deliveryStatus = 'sent';
+          activeProvider = 'smtp_587';
+          errorMessage = null;
+          console.log(`✉️ Live announcement dispatched via Gmail SMTP (Port 587) to ${email} (MessageID: ${fallbackInfo.messageId})`);
+        } catch (retryErr) {
+          errorMessage = `SMTP Port 465 error (${smtpErr.message}) & Port 587 error (${retryErr.message})`;
+          console.warn(`[Announcement SMTP Port 587 Retry Failed for ${email}]:`, retryErr.message);
+        }
+      }
     }
+  } else {
+    const missing = [];
+    if (!config.smtpHost) missing.push('SMTP_HOST');
+    if (!config.smtpUser) missing.push('SMTP_USER');
+    if (!config.smtpPass) missing.push('SMTP_APP_PASSWORD');
+    errorMessage = `SMTP credentials incomplete on this server instance (Missing: ${missing.join(', ')}). Please configure these environment variables in your server settings.`;
+    console.warn(`[Announcement Warning for ${email}]:`, errorMessage);
   }
 
   // 2. Secondary fallback: Resend REST API (HTTPS port 443)
-  if (deliveryStatus !== 'sent' && config.resendApiKey) {
+  // ONLY attempt Resend if a verified domain is configured, OR if recipient is the sandbox owner
+  const isResendSandbox = (config.emailFrom || '').includes('resend.dev');
+  const canSendViaResend = config.resendApiKey && (!isResendSandbox || email.toLowerCase() === 'anandhuwork.8@gmail.com');
+
+  if (deliveryStatus !== 'sent' && canSendViaResend) {
     try {
       const resend = new Resend(config.resendApiKey);
       const resendFrom = process.env.EMAIL_FROM || 'The Evergreen Express <onboarding@resend.dev>';
@@ -771,10 +857,10 @@ export async function sendAnnouncementEmail(email, fullName, participantId, site
         errorMessage = null;
         console.log(`✉️ Live announcement dispatched via Resend to ${email} (ID: ${res.data.id})`);
       } else if (res && res.error) {
-        errorMessage = res.error.message;
+        errorMessage = `${errorMessage ? errorMessage + ' | ' : ''}Resend error: ${res.error.message}`;
       }
     } catch (resendErr) {
-      errorMessage = resendErr.message;
+      errorMessage = `${errorMessage ? errorMessage + ' | ' : ''}Resend error: ${resendErr.message}`;
       console.warn(`Resend announcement delivery attempt failed for ${email}:`, resendErr.message);
     }
   }

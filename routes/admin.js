@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { query, getClient } from '../config/db.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { generateDraw, lockDraw, generateAndLockDraw } from '../services/drawService.js';
-import { sendAnnouncementEmail, generateAnnouncementHtml } from '../services/emailService.js';
+import { sendAnnouncementEmail, generateAnnouncementHtml, verifySmtpConnection } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -486,7 +486,7 @@ router.post('/event/end', requireAdmin, async (req, res) => {
  */
 router.get('/announcement/status', requireAdmin, async (req, res) => {
   try {
-    const [eligibleRes, auditRes] = await Promise.all([
+    const [eligibleRes, auditRes, smtpVerification] = await Promise.all([
       query(
         `SELECT DISTINCT ON (email) id, participant_id, full_name, email, department
          FROM participants
@@ -500,6 +500,7 @@ router.get('/announcement/status', requireAdmin, async (req, res) => {
          ORDER BY created_at DESC
          LIMIT 1`
       ),
+      verifySmtpConnection(),
     ]);
 
     const participants = eligibleRes.rows.map(p => ({
@@ -531,6 +532,7 @@ router.get('/announcement/status', requireAdmin, async (req, res) => {
       participants,
       lastAnnouncement,
       siteUrl,
+      smtpVerification,
       preview: {
         subject: '🎅 Secret Santa Has Officially Started!',
         sampleRecipient,
@@ -540,6 +542,20 @@ router.get('/announcement/status', requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Announcement status error:', error);
     return res.status(500).json({ success: false, message: 'Failed to retrieve announcement status.' });
+  }
+});
+
+/**
+ * GET /api/admin/announcement/verify-smtp
+ * Directly tests SMTP connection & authentication
+ */
+router.get('/announcement/verify-smtp', requireAdmin, async (req, res) => {
+  try {
+    const result = await verifySmtpConnection();
+    return res.json(result);
+  } catch (error) {
+    console.error('Verify SMTP error:', error);
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 

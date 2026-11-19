@@ -64,8 +64,22 @@ const authLimiter = rateLimit({
   },
 });
 
+// Rate Limiting for OTP Verification Code Requests
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // max 20 verification requests per 15 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many verification requests from this network. Please wait a few minutes before trying again.',
+  },
+});
+
 app.use('/api/auth/login', authLimiter);
 app.use('/api/admin/login', authLimiter);
+app.use('/api/auth/register-request-otp', otpLimiter);
+app.use('/api/auth/resend-otp', otpLimiter);
 
 // API Endpoints
 app.use('/api/auth', authRouter);

@@ -20,6 +20,7 @@
     "test": "node tests/backend.test.js",
     "test:e2e": "node tests/e2e.test.js",
     "test:otp": "node tests/otp.test.js",
+    "test:gas-otp": "node tests/google_apps_script_otp.test.js",
     "test:smtp": "node tests/smtp.test.js",
     "test:multi-user": "node tests/multi_user_registration.test.js",
     "test:lifecycle": "node tests/lifecycle_and_participants.test.js"

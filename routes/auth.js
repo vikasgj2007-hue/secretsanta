@@ -122,16 +122,16 @@ router.post('/register-request-otp', async (req, res) => {
       [cleanEmail, otpHash, JSON.stringify(regData)]
     );
 
-    // 11. Dispatch festive email
+    // 11. Dispatch verification email via Google Apps Script (or configured provider)
     const emailResult = await sendOtpEmail(cleanEmail, trimmedName, rawOtp);
 
-    // If email failed to dispatch and no fallback was available, return error
+    // If email failed to dispatch, remove pending verification and return error
     if (!emailResult.success) {
       await query('DELETE FROM email_verifications WHERE LOWER(email) = $1', [cleanEmail]);
 
       return res.status(502).json({
         success: false,
-        message: emailResult.userMessage || 'Failed to dispatch verification code to your email. Please try again.',
+        message: emailResult.userMessage || 'Failed to dispatch verification code to your email. Please verify your email address and try again.',
         error: emailResult.error,
         provider: emailResult.provider,
       });
@@ -139,16 +139,12 @@ router.post('/register-request-otp', async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: emailResult.isSimulated
-        ? 'Verification code generated! (Cloud simulator fallback active)'
-        : 'A 6-digit verification code has been sent to your email address.',
+      message: 'A 6-digit verification code has been sent to your email address.',
       maskedEmail: maskEmail(cleanEmail),
       email: cleanEmail,
       expiresInMinutes: 5,
       resendCooldownSeconds: 60,
       provider: emailResult.provider,
-      isSimulated: !!emailResult.isSimulated,
-      simulatedOtp: emailResult.simulatedOtp || undefined,
     });
   } catch (error) {
     console.error('Request OTP error:', error);

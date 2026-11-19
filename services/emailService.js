@@ -7,13 +7,16 @@ dotenv.config();
 
 /**
  * Parses and determines active email transport configuration.
- * Supports Resend (HTTPS Port 443), Gmail SMTP, and offline Simulation mode.
+ * Primary: Google Apps Script Web App (MailApp HTTPS API)
+ * Secondary: Resend REST API (HTTPS Port 443), Gmail SMTP
  */
 export function reloadEmailConfig() {
   dotenv.config({ override: true });
 }
 
 export function getEmailConfig() {
+  const googleScriptUrl = (process.env.GOOGLE_SCRIPT_URL || '').trim();
+  const googleScriptSecret = (process.env.GOOGLE_SCRIPT_SECRET || '').trim();
   const resendApiKey = (process.env.RESEND_API_KEY || '').trim();
   const smtpHost = (process.env.SMTP_HOST || 'smtp.gmail.com').trim();
   const smtpPort = parseInt(process.env.SMTP_PORT || '465', 10);
@@ -35,19 +38,19 @@ export function getEmailConfig() {
     emailFrom = '"THE EVERGREEN EXPRESS"';
   }
 
-  const allowSimulator = process.env.ENABLE_EMAIL_SIMULATOR === 'true';
-
   let provider = 'none';
-  if (resendApiKey) {
+  if (googleScriptUrl && googleScriptSecret) {
+    provider = 'google_script';
+  } else if (resendApiKey) {
     provider = 'resend';
   } else if (smtpHost && smtpUser && smtpPass) {
     provider = 'smtp';
-  } else if (allowSimulator) {
-    provider = 'simulator';
   }
 
   return {
     provider,
+    googleScriptUrl,
+    googleScriptSecret,
     resendApiKey,
     smtpHost,
     smtpPort,
@@ -55,12 +58,11 @@ export function getEmailConfig() {
     smtpUser,
     smtpPass,
     emailFrom,
-    allowSimulator,
   };
 }
 
 /**
- * Returns diagnostic status of the email integration without leaking passwords.
+ * Returns diagnostic status of the email integration without leaking passwords or secrets.
  */
 export function getEmailStatus() {
   const config = getEmailConfig();
@@ -77,15 +79,16 @@ export function getEmailStatus() {
   }
 
   return {
-    configured: config.provider !== 'none' || !!config.resendApiKey,
+    configured: config.provider !== 'none',
     provider: config.provider,
+    googleScriptConfigured: !!(config.googleScriptUrl && config.googleScriptSecret),
     resendConfigured: !!config.resendApiKey,
     smtpHost: config.smtpHost,
     smtpPort: config.smtpPort,
     smtpSecure: config.smtpSecure,
     smtpUserMasked: maskedUser,
     senderEmail: config.emailFrom,
-    isSimulator: config.provider === 'simulator',
+    isSimulator: false,
   };
 }
 
@@ -347,48 +350,138 @@ ST PAULS COLLEGE • The Evergreen Express Committee
 }
 
 /**
- * Sends a Christmas-themed 6-digit OTP verification email.
- * Multi-tier delivery:
- * 1. Resend REST API (HTTPS Port 443 - bypasses cloud hosting firewall port blocks)
- * 2. Gmail SMTP (with fast timeout protection)
- * 3. Resilient Cloud Fallback (logs code to console & auto-provides for seamless registration)
+ * Sends OTP email via user's Google Apps Script Web App using HTTPS POST.
+ * Follows 302 redirects automatically, handles timeouts, and checks JSON response.
+ *
+ * @param {string} email - Recipient email address
+ * @param {string} otp - 6-digit OTP code
+ * @returns {Promise<{success: boolean, message?: string, error?: string, userMessage?: string}>}
+ */
+export async function sendOtpViaGoogleScript(email, otp) {
+  const config = getEmailConfig();
+  if (!config.googleScriptUrl || !config.googleScriptSecret) {
+    return {
+      success: false,
+      error: 'Google Apps Script configuration is missing (GOOGLE_SCRIPT_URL or GOOGLE_SCRIPT_SECRET).',
+      userMessage: 'Email verification service is not configured. Please contact the administrator.',
+    };
+  }
+
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  const cleanOtp = String(otp || '').trim();
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
+    const response = await fetch(config.googleScriptUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        secret: config.googleScriptSecret,
+        email: cleanEmail,
+        otp: cleanOtp,
+      }),
+      redirect: 'follow',
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    const responseText = await response.text();
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseErr) {
+      console.error('Failed to parse Google Apps Script response JSON:', responseText.slice(0, 150));
+      return {
+        success: false,
+        error: `Unexpected response from Google Apps Script (HTTP ${response.status})`,
+        userMessage: 'Verification email could not be sent. Please check your email address or try again shortly.',
+      };
+    }
+
+    if (!response.ok || !data || data.success !== true) {
+      const errMsg = (data && data.message) || (data && data.error) || `HTTP ${response.status}`;
+      console.warn(`Google Apps Script delivery failed for ${cleanEmail}:`, errMsg);
+      return {
+        success: false,
+        error: errMsg,
+        userMessage: data?.message === 'Unauthorized'
+          ? 'Email delivery authorization failed. Please contact the administrator.'
+          : 'Unable to deliver verification email to this address. Please ensure the email is valid and try again.',
+      };
+    }
+
+    return {
+      success: true,
+      message: data.message || 'Email sent successfully via Google Apps Script.',
+    };
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      console.error('Google Apps Script request timed out after 15 seconds.');
+      return {
+        success: false,
+        error: 'Network timeout contacting Google Apps Script.',
+        userMessage: 'Email verification service timed out. Please try again in a few moments.',
+      };
+    }
+    console.error('Google Apps Script request error:', err.message);
+    return {
+      success: false,
+      error: err.message,
+      userMessage: 'Unable to reach the email verification service. Please try again shortly.',
+    };
+  }
+}
+
+/**
+ * Sends a 6-digit OTP verification email.
+ * Primary: Google Apps Script Web App (MailApp HTTPS API)
+ * Secondary fallback: Resend REST API, Gmail SMTP
+ * 
+ * Secure design:
+ * - Never returns plain OTP in response
+ * - Never logs plain OTP to console
+ * - Does not simulate or fake success
  *
  * @param {string} email - Recipient email dynamically passed from registration
  * @param {string} fullName - Recipient full name
  * @param {string} otp - 6-digit OTP code
- * @returns {Promise<{success: boolean, provider: string, deliveryStatus: string, isSimulated?: boolean, simulatedOtp?: string, error?: string, userMessage?: string}>}
+ * @returns {Promise<{success: boolean, provider: string, deliveryStatus: string, error?: string, userMessage?: string}>}
  */
 export async function sendOtpEmail(email, fullName, otp) {
   const subject = 'Verify Your Email – THE EVERGREEN EXPRESS';
-  const html = generateOtpHtml(fullName, otp);
-  const text = generateOtpText(fullName, otp);
   const config = getEmailConfig();
 
   let deliveryStatus = 'failed';
   let errorMessage = null;
   let userMessage = null;
-  let isSimulated = false;
   let activeProvider = config.provider;
 
-  // 1. Explicit Simulator Mode (via ENABLE_EMAIL_SIMULATOR=true)
-  if (config.allowSimulator) {
-    isSimulated = true;
-    deliveryStatus = 'sent';
-    activeProvider = 'simulator';
-    console.log('\n🎄 =============================================================');
-    console.log(`✉️ [EMAIL SIMULATOR MODE ENABLED]`);
-    console.log(`   To:      ${email}`);
-    console.log(`   Name:    ${fullName}`);
-    console.log(`   Subject: ${subject}`);
-    console.log(`   OTP:     >>> ${otp} <<< (Expires in 5 minutes)`);
-    console.log('=============================================================\n');
+  // 1. Primary: Google Apps Script Web App (MailApp over HTTPS)
+  if (config.googleScriptUrl && config.googleScriptSecret) {
+    const gasResult = await sendOtpViaGoogleScript(email, otp);
+    if (gasResult.success) {
+      deliveryStatus = 'sent';
+      activeProvider = 'google_script';
+      console.log(`✉️ Live OTP email dispatched via Google Apps Script to ${email}`);
+    } else {
+      errorMessage = gasResult.error;
+      userMessage = gasResult.userMessage;
+      console.warn(`Google Apps Script dispatch failed for ${email}: ${errorMessage}`);
+    }
   }
 
-  // 2. Try Resend HTTP API over HTTPS (Port 443 - NEVER blocked by cloud firewalls)
-  if (!isSimulated && config.resendApiKey) {
+  // 2. Secondary fallback: Resend REST API (if GAS was not configured or failed)
+  if (deliveryStatus !== 'sent' && config.resendApiKey) {
     try {
       const resend = new Resend(config.resendApiKey);
       const resendFrom = process.env.EMAIL_FROM || 'The Evergreen Express <onboarding@resend.dev>';
+      const html = generateOtpHtml(fullName, otp);
+      const text = generateOtpText(fullName, otp);
       const res = await resend.emails.send({
         from: resendFrom,
         to: email,
@@ -400,21 +493,26 @@ export async function sendOtpEmail(email, fullName, otp) {
       if (res && res.data && res.data.id) {
         deliveryStatus = 'sent';
         activeProvider = 'resend';
+        errorMessage = null;
+        userMessage = null;
         console.log(`✉️ Live OTP email dispatched via Resend HTTPS API to ${email} (ID: ${res.data.id})`);
       } else if (res && res.error) {
         console.warn(`Resend notice for ${email}: ${res.error.message}`);
-        // If Resend failed (e.g. unverified domain or test account restriction), proceed to SMTP
+        errorMessage = res.error.message;
       }
     } catch (resendErr) {
       console.warn(`Resend attempt notice: ${resendErr.message}`);
+      errorMessage = resendErr.message;
     }
   }
 
-  // 3. Try Gmail SMTP if not yet sent and credentials are provided
-  if (!isSimulated && deliveryStatus !== 'sent' && config.smtpHost && config.smtpUser && config.smtpPass) {
+  // 3. Secondary fallback: Gmail SMTP (if credentials provided and not yet sent)
+  if (deliveryStatus !== 'sent' && config.smtpHost && config.smtpUser && config.smtpPass) {
     try {
       const transporter = createTransporter();
       if (transporter) {
+        const html = generateOtpHtml(fullName, otp);
+        const text = generateOtpText(fullName, otp);
         const info = await transporter.sendMail({
           from: config.emailFrom,
           to: email,
@@ -425,32 +523,19 @@ export async function sendOtpEmail(email, fullName, otp) {
 
         deliveryStatus = 'sent';
         activeProvider = 'smtp';
+        errorMessage = null;
+        userMessage = null;
         console.log(`✉️ Live OTP email dispatched via Gmail SMTP to ${email} (MessageID: ${info.messageId})`);
       }
     } catch (err) {
       errorMessage = err.message;
       const formatted = formatSmtpError(err);
       userMessage = formatted.userMessage;
-      console.warn(`SMTP delivery notice for ${email} (often blocked on free cloud hosting):`, err.message);
+      console.warn(`SMTP delivery notice for ${email}:`, err.message);
     }
   }
 
-  // 4. Cloud Hosting Resilience Fallback:
-  // If outbound SMTP was blocked by host firewall (Render Free Tier blocks ports 25, 465, 587)
-  // and Resend is restricted to test accounts, activate Cloud Fallback mode so participants
-  // are NEVER blocked or prevented from registering and enjoying the celebration!
-  if (deliveryStatus !== 'sent') {
-    isSimulated = true;
-    deliveryStatus = 'sent';
-    activeProvider = 'cloud_fallback';
-    console.log('\n🎄 =============================================================');
-    console.log(`✉️ [CLOUD SIMULATOR / FALLBACK MODE ACTIVE]`);
-    console.log(`   Notice: Outbound email ports blocked by host firewall. Code generated.`);
-    console.log(`   To:      ${email}`);
-    console.log(`   Name:    ${fullName}`);
-    console.log(`   OTP:     >>> ${otp} <<< (Expires in 5 minutes)`);
-    console.log('=============================================================\n');
-  }
+  const isSuccess = deliveryStatus === 'sent';
 
   // Record dispatch in email_notifications table asynchronously
   query(
@@ -462,10 +547,10 @@ export async function sendOtpEmail(email, fullName, otp) {
   });
 
   return {
-    success: true,
+    success: isSuccess,
     provider: activeProvider,
     deliveryStatus,
-    isSimulated,
-    simulatedOtp: isSimulated ? otp : undefined,
+    error: isSuccess ? undefined : errorMessage,
+    userMessage: isSuccess ? undefined : (userMessage || 'Failed to deliver verification code. Please check your email and try again.'),
   };
 }

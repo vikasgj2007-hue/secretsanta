@@ -793,7 +793,7 @@ async function showNotificationModal(currentUser) {
             Email Delivery Integration
           </div>
           <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin-top: 4px;">
-            Google Apps Script Web App ✉️
+            Live Event Notification (Gmail SMTP) ✉️
           </div>
         </div>
       </div>
@@ -822,7 +822,7 @@ async function showNotificationModal(currentUser) {
         </div>
 
         <div style="border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 8px; overflow: hidden; background: #050a16; margin-bottom: 1.25rem;">
-          <iframe id="announcement-preview-frame" style="width: 100%; height: 380px; border: none; background: #050a16;" srcdoc="${encodeURIComponent(preview.html)}"></iframe>
+          <iframe id="announcement-preview-frame" style="width: 100%; height: 380px; border: none; background: #050a16;"></iframe>
         </div>
 
         <!-- Send Test Email -->
@@ -907,6 +907,12 @@ async function showNotificationModal(currentUser) {
         </div>
       </div>
     `;
+
+    // Populate preview iframe safely with rich HTML
+    const previewFrame = document.getElementById('announcement-preview-frame');
+    if (previewFrame && preview?.html) {
+      previewFrame.srcdoc = preview.html;
+    }
 
     // Tab buttons
     document.getElementById('tab-btn-preview').onclick = () => {

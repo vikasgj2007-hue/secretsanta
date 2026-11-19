@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { query, getClient } from '../config/db.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { generateDraw, lockDraw, generateAndLockDraw } from '../services/drawService.js';
-import { sendOtpEmail, sendAnnouncementEmail, generateAnnouncementHtml } from '../services/emailService.js';
+import { sendAnnouncementEmail, generateAnnouncementHtml } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -488,10 +488,10 @@ router.get('/announcement/status', requireAdmin, async (req, res) => {
   try {
     const [eligibleRes, auditRes] = await Promise.all([
       query(
-        `SELECT id, participant_id, full_name, email, department
+        `SELECT DISTINCT ON (email) id, participant_id, full_name, email, department
          FROM participants
          WHERE email_verified = TRUE AND account_status = 'active'
-         ORDER BY participant_id ASC`
+         ORDER BY email, participant_id ASC`
       ),
       query(
         `SELECT details, created_at
@@ -517,9 +517,9 @@ router.get('/announcement/status', requireAdmin, async (req, res) => {
         : auditRes.rows[0].details,
     } : null;
 
-    const siteUrl = process.env.APP_URL || req.headers.origin || `${req.protocol}://${req.get('host')}`;
+    const siteUrl = process.env.APP_URL || req.headers.origin || `${req.protocol}://${req.get('host')}` || 'https://santa-ol5v.onrender.com';
     const sampleRecipient = participants[0] || {
-      fullName: 'Dr. Robert Vance',
+      fullName: 'Faculty Colleague',
       participantId: 'SS101',
     };
 
@@ -532,7 +532,7 @@ router.get('/announcement/status', requireAdmin, async (req, res) => {
       lastAnnouncement,
       siteUrl,
       preview: {
-        subject: '🎄 The Journey Begins! Discover Your Secret Santa Friend – THE EVERGREEN EXPRESS',
+        subject: '🎅 Secret Santa Has Officially Started!',
         sampleRecipient,
         html: sampleHtml,
       },
@@ -550,7 +550,7 @@ router.get('/announcement/status', requireAdmin, async (req, res) => {
 router.post('/announcement/send-single', requireAdmin, async (req, res) => {
   try {
     const { participantId, testEmail } = req.body;
-    const siteUrl = process.env.APP_URL || req.headers.origin || `${req.protocol}://${req.get('host')}`;
+    const siteUrl = process.env.APP_URL || req.headers.origin || `${req.protocol}://${req.get('host')}` || 'https://santa-ol5v.onrender.com';
 
     // Test send to admin's custom email
     if (testEmail) {

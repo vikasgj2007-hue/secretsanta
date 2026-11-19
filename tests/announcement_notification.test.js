@@ -35,11 +35,14 @@ async function runAnnouncementTests() {
 
     assert(html.includes(sampleName), 'Template contains faculty member full name.');
     assert(html.includes(sampleTicketId), 'Template contains unique Participant ID.');
-    assert(html.includes('OFFICIAL CELEBRATION ANNOUNCEMENT') || html.includes('begun'), 'Template announces celebration kickoff.');
-    assert(html.includes('Secret Santa') || html.includes('holiday friend'), 'Template contains festive Christmas holiday message.');
-    assert(html.includes('password') && html.includes('login'), 'Template contains clear login instructions.');
+    assert(html.includes('Secret Santa Has Officially Started!'), 'Template announces event has officially started.');
+    assert(html.includes('The wait is over! Our Secret Santa event has officially started! 🎄'), 'Template contains exact celebratory announcement text.');
+    assert(html.includes('<strong>' + sampleTicketId + '</strong>'), 'Ticket ID is styled prominently in bold.');
+    assert(html.includes('Keep this Participant ID safe'), 'Template contains ID safety instruction.');
     assert(html.includes(sampleSiteUrl), 'Template contains clickable direct link to live website.');
-    assert(html.includes('font-family: \'Courier New\', Courier, monospace'), 'Ticket ID is styled prominently in large bold monospace.');
+    assert(html.includes('– Secret Santa Team 🎅'), 'Template contains official team sign-off.');
+    assert(!html.toLowerCase().includes('otp') && !html.toLowerCase().includes('verification code'), 'Template contains ZERO OTP or verification code text.');
+    assert(!html.toLowerCase().includes('expire') && !html.toLowerCase().includes('5 minutes'), 'Template contains ZERO OTP expiration or timer text.');
 
     // -------------------------------------------------------------------------
     // TEST 2: Plain Text Fallback Requirements
@@ -48,19 +51,21 @@ async function runAnnouncementTests() {
     const text = generateAnnouncementText(sampleName, sampleTicketId, sampleSiteUrl);
 
     assert(text.includes(sampleName), 'Plain text contains faculty member full name.');
-    assert(text.includes(sampleTicketId), 'Plain text contains unique Participant ID.');
+    assert(text.includes(sampleTicketId), 'Plain text contains unique Participant ID in bold/prominent format.');
     assert(text.includes(sampleSiteUrl), 'Plain text contains direct website link.');
-    assert(text.includes('Secret Santa'), 'Plain text contains Secret Santa instructions.');
+    assert(text.includes('Secret Santa Has Officially Started!'), 'Plain text contains event-started announcement.');
+    assert(text.includes('– Secret Santa Team 🎅'), 'Plain text contains team sign-off.');
+    assert(!text.toLowerCase().includes('otp') && !text.toLowerCase().includes('verification code'), 'Plain text contains ZERO OTP or verification code text.');
 
     // -------------------------------------------------------------------------
-    // TEST 3: Database Eligible Participants Filter
+    // TEST 3: Database Eligible Participants Filter (Deduplicated)
     // -------------------------------------------------------------------------
     console.log('\n--- Test 3: Eligible Registered Participants Query ---');
     const eligibleRes = await query(
-      `SELECT id, participant_id, full_name, email, department
+      `SELECT DISTINCT ON (email) id, participant_id, full_name, email, department
        FROM participants
        WHERE email_verified = TRUE AND account_status = 'active'
-       ORDER BY participant_id ASC`
+       ORDER BY email, participant_id ASC`
     );
 
     assert(eligibleRes.rowCount >= 0, `Query successfully retrieved ${eligibleRes.rowCount} eligible verified participants.`);
@@ -106,9 +111,9 @@ async function runAnnouncementTests() {
     await query("DELETE FROM audit_logs WHERE actor_id = 'system-test'");
 
     // -------------------------------------------------------------------------
-    // TEST 5: Live Dispatch via Google Apps Script (Test Target)
+    // TEST 5: Live Event-Start Announcement Dispatch (Separated from OTP)
     // -------------------------------------------------------------------------
-    console.log('\n--- Test 5: Live Google Apps Script Announcement Dispatch ---');
+    console.log('\n--- Test 5: Live Event-Start Announcement Dispatch (No OTP) ---');
     const testTargetEmail = 'vikas.gj2007@gmail.com';
     const dispatchResult = await sendAnnouncementEmail(
       testTargetEmail,
@@ -119,18 +124,19 @@ async function runAnnouncementTests() {
 
     assert(dispatchResult.success === true, `Live announcement successfully dispatched via ${dispatchResult.provider.toUpperCase()} to ${testTargetEmail}.`);
     assert(dispatchResult.deliveryStatus === 'sent', 'Delivery status recorded as sent.');
+    assert(dispatchResult.provider !== 'google_script', 'Provider is Gmail SMTP / Resend (NOT Google Apps Script OTP script).');
 
     // Verify record in email_notifications table
     const notifCheck = await query(
       `SELECT recipient_email, subject, status, sent_at
        FROM email_notifications
-       WHERE recipient_email = $1 AND subject LIKE '%The Journey Begins%'
+       WHERE recipient_email = $1 AND subject LIKE '%Secret Santa Has Officially Started%'
        ORDER BY sent_at DESC
        LIMIT 1`,
       [testTargetEmail]
     );
 
-    assert(notifCheck.rowCount === 1, 'Announcement dispatch recorded in email_notifications table.');
+    assert(notifCheck.rowCount >= 1, 'Announcement dispatch recorded in email_notifications table with event-start subject.');
     assert(notifCheck.rows[0].status === 'sent', 'Notification table status confirmed as "sent".');
 
     console.log('\n=============================================================');

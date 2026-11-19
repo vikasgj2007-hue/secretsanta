@@ -115,26 +115,30 @@ export function createTransporter() {
   if (isGmail) {
     cachedTransporter = nodemailer.createTransport({
       service: 'gmail',
+      pool: true,
+      maxConnections: 3,
       auth: {
         user: config.smtpUser,
         pass: config.smtpPass,
       },
-      connectionTimeout: 30000,
-      greetingTimeout: 20000,
-      socketTimeout: 30000,
+      connectionTimeout: 4000,
+      greetingTimeout: 3000,
+      socketTimeout: 5000,
     });
   } else {
     cachedTransporter = nodemailer.createTransport({
       host: config.smtpHost,
       port: config.smtpPort,
       secure: config.smtpSecure,
+      pool: true,
+      maxConnections: 3,
       auth: {
         user: config.smtpUser,
         pass: config.smtpPass,
       },
-      connectionTimeout: 30000,
-      greetingTimeout: 20000,
-      socketTimeout: 30000,
+      connectionTimeout: 4000,
+      greetingTimeout: 3000,
+      socketTimeout: 5000,
       tls: {
         rejectUnauthorized: false,
       },
@@ -147,85 +151,43 @@ export function createTransporter() {
 
 /**
  * Verifies SMTP connection and authentication with the mail server.
- * Tests primary configuration (port 465 SSL or custom) and falls back to port 587 STARTTLS for Gmail.
  * Useful for diagnostics, health checks, and test scripts.
  */
 export async function verifySmtpConnection() {
   const config = getEmailConfig();
-
-  if (!config.smtpHost || !config.smtpUser || !config.smtpPass) {
-    const missing = [];
-    if (!config.smtpHost) missing.push('SMTP_HOST');
-    if (!config.smtpUser) missing.push('SMTP_USER');
-    if (!config.smtpPass) missing.push('SMTP_APP_PASSWORD');
+  if (config.provider === 'simulator') {
     return {
-      success: false,
-      configured: false,
-      provider: 'none',
-      error: `Missing credentials: ${missing.join(', ')}`,
-      userMessage: `SMTP is not configured on this server instance (Missing: ${missing.join(', ')}). Set these in your environment variables.`,
-      message: `SMTP is not configured on this server instance (Missing: ${missing.join(', ')}).`,
+      success: true,
+      provider: 'simulator',
+      message: 'Email simulator active (offline mode).',
     };
   }
 
-  // 1. Try primary transporter
+  if (config.provider !== 'smtp') {
+    return {
+      success: false,
+      provider: 'none',
+      message: 'Gmail SMTP credentials are not configured in .env. Please set SMTP_USER and SMTP_APP_PASSWORD.',
+    };
+  }
+
   try {
     const transporter = createTransporter();
-    if (!transporter) throw new Error('Could not create SMTP transporter');
     await transporter.verify();
     return {
       success: true,
-      configured: true,
       provider: 'smtp',
-      user: getEmailStatus().smtpUserMasked,
-      host: config.smtpHost,
-      port: config.smtpPort,
-      message: `Successfully connected and authenticated with ${config.smtpHost}:${config.smtpPort} as ${getEmailStatus().smtpUserMasked}.`,
+      message: `Successfully authenticated with ${config.smtpHost}:${config.smtpPort} as ${config.smtpUser}.`,
     };
   } catch (err) {
-    console.warn('Primary SMTP verification failed:', err.message);
-
-    // 2. If Gmail, try Port 587 STARTTLS
-    const isGmail = config.smtpHost.includes('gmail.com') || config.smtpUser.toLowerCase().endsWith('@gmail.com');
-    if (isGmail) {
-      try {
-        const fallback587 = nodemailer.createTransport({
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          auth: {
-            user: config.smtpUser,
-            pass: config.smtpPass,
-          },
-          connectionTimeout: 20000,
-          greetingTimeout: 15000,
-          socketTimeout: 20000,
-        });
-        await fallback587.verify();
-        return {
-          success: true,
-          configured: true,
-          provider: 'smtp_587',
-          user: getEmailStatus().smtpUserMasked,
-          host: 'smtp.gmail.com',
-          port: 587,
-          message: `Successfully connected to smtp.gmail.com:587 STARTTLS as ${getEmailStatus().smtpUserMasked}.`,
-        };
-      } catch (retryErr) {
-        console.warn('Port 587 fallback verification failed:', retryErr.message);
-      }
-    }
-
     const errorDetails = formatSmtpError(err);
     return {
       success: false,
-      configured: true,
       provider: 'smtp',
       error: err.message,
-      code: err.code || 'UNKNOWN',
+      code: err.code,
       userMessage: errorDetails.userMessage,
       hint: errorDetails.hint,
-      message: `SMTP verification failed: ${err.message}`,
     };
   }
 }
@@ -590,296 +552,5 @@ export async function sendOtpEmail(email, fullName, otp) {
     deliveryStatus,
     error: isSuccess ? undefined : errorMessage,
     userMessage: isSuccess ? undefined : (userMessage || 'Failed to deliver verification code. Please check your email and try again.'),
-  };
-}
-
-/**
- * Generates the festive event-started announcement HTML email template
- */
-export function generateAnnouncementHtml(fullName, participantId, siteUrl) {
-  const safeSiteUrl = siteUrl || process.env.APP_URL || 'https://santa-ol5v.onrender.com';
-  const greeting = fullName ? `Hello ${fullName}!` : 'Hello!';
-
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎅 Secret Santa Has Officially Started!</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #050a16; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f8fafc;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #050a16; padding: 40px 15px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" style="max-width: 580px; background: radial-gradient(circle at top, #111e38 0%, #070d1e 100%); border: 2px solid #d4af37; border-radius: 16px; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.85);">
-          <!-- Header Banner -->
-          <tr>
-            <td style="padding: 35px 30px 20px 30px; text-align: center; border-bottom: 1px solid rgba(212, 175, 55, 0.3);">
-              <div style="font-size: 44px; margin-bottom: 8px;">🎅🎄</div>
-              <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #fef08a; font-weight: 700; margin-bottom: 6px;">
-                OFFICIAL CELEBRATION ANNOUNCEMENT
-              </div>
-              <h1 style="margin: 0; font-size: 26px; color: #ffffff; letter-spacing: 1px; font-weight: 800;">
-                Secret Santa Has Officially Started!
-              </h1>
-              <div style="font-size: 12px; letter-spacing: 2px; color: #cbd5e1; text-transform: uppercase; margin-top: 6px;">
-                The Evergreen Express • St Pauls College
-              </div>
-            </td>
-          </tr>
-
-          <!-- Main Content -->
-          <tr>
-            <td style="padding: 32px 35px; text-align: left;">
-              <p style="font-size: 18px; color: #ffffff; margin-top: 0; margin-bottom: 14px; font-weight: 600;">
-                ${greeting}
-              </p>
-              <p style="font-size: 16px; line-height: 1.6; color: #fef08a; font-weight: 700; margin-bottom: 12px;">
-                The wait is over! Our Secret Santa event has officially started! 🎄
-              </p>
-              <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1; margin-bottom: 24px;">
-                It's time to begin your Secret Santa journey and spread some festive joy.
-              </p>
-
-              <!-- Prominent Participant ID Display Card -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 25px 0;">
-                <tr>
-                  <td align="center" style="background: rgba(212, 175, 55, 0.12); border: 2px dashed #fde047; border-radius: 12px; padding: 22px 15px;">
-                    <div style="font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: #fef08a; margin-bottom: 8px; font-weight: 700;">
-                      YOUR PARTICIPANT ID
-                    </div>
-                    <div style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 800; letter-spacing: 6px; color: #ffffff; text-shadow: 0 0 15px rgba(254, 240, 138, 0.8);">
-                      <strong>${participantId}</strong>
-                    </div>
-                    <div style="font-size: 13px; color: #cbd5e1; margin-top: 10px; line-height: 1.5;">
-                      Keep this Participant ID safe, as you will need it to log in to the Secret Santa website.
-                    </div>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Action Button -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 30px 0 15px 0;">
-                <tr>
-                  <td align="center">
-                    <a href="${safeSiteUrl}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); color: #050a16; font-weight: 800; font-size: 15px; padding: 15px 32px; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.5); text-transform: uppercase; letter-spacing: 1px;">
-                      VISIT THE SECRET SANTA WEBSITE ➔
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="font-size: 13px; line-height: 1.5; color: #94a3b8; text-align: center; margin-top: 12px; margin-bottom: 24px;">
-                Visit the Secret Santa Website: <a href="${safeSiteUrl}" target="_blank" style="color: #93c5fd; text-decoration: underline; font-weight: 600;">${safeSiteUrl}</a>
-              </p>
-
-              <!-- Instructions -->
-              <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; border-radius: 6px; padding: 12px 14px; margin-bottom: 20px;">
-                <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #a7f3d0;">
-                  🎁 <strong>How to get started:</strong> Log in with your <strong>Participant ID</strong> (or registered email) and your password to discover your assigned Christmas friend and explore their wishlist!
-                </p>
-              </div>
-
-              <p style="font-size: 15px; line-height: 1.6; color: #fef08a; font-weight: 600; margin-bottom: 6px;">
-                Wishing you a fun, exciting and magical Secret Santa experience!
-              </p>
-              <p style="font-size: 15px; line-height: 1.6; color: #ffffff; font-weight: 700; margin-top: 0;">
-                – Secret Santa Team 🎅
-              </p>
-            </td>
-          </tr>
-
-          <!-- Festive Footer -->
-          <tr>
-            <td style="padding: 22px 30px 25px 30px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1); background-color: rgba(0, 0, 0, 0.3);">
-              <p style="margin: 0 0 6px 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #fef08a; font-weight: 600;">
-                Spread Joy • Share Kindness • Make It Magical
-              </p>
-              <p style="margin: 0; font-size: 11px; color: #94a3b8;">
-                ST PAULS COLLEGE • Department of Computer Science • The Evergreen Express
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-  `.trim();
-}
-
-/**
- * Generates the plain text announcement email fallback
- */
-export function generateAnnouncementText(fullName, participantId, siteUrl) {
-  const safeSiteUrl = siteUrl || process.env.APP_URL || 'https://santa-ol5v.onrender.com';
-  const greeting = fullName ? `Hello ${fullName}!` : 'Hello!';
-  return `
-🎅 Secret Santa Has Officially Started!
-
-${greeting}
-
-The wait is over! Our Secret Santa event has officially started! 🎄
-
-It's time to begin your Secret Santa journey and spread some festive joy.
-
-================================================
-Your Participant ID: ${participantId}
-================================================
-
-Keep this Participant ID safe, as you will need it to log in to the Secret Santa website.
-
-Visit the Secret Santa Website: ${safeSiteUrl}
-
-Instructions:
-1. Open the website link above.
-2. Log in using your Participant ID (${participantId}) or your registered email, and your password.
-3. Discover your Christmas friend, explore their wishlist, and make their holiday magical!
-
-Wishing you a fun, exciting and magical Secret Santa experience!
-
-– Secret Santa Team 🎅
-ST PAULS COLLEGE • The Evergreen Express
-`.trim();
-}
-
-/**
- * Sends a personalized event-start announcement email to a registered participant.
- * Uses Gmail SMTP (primary) and Resend REST API (fallback).
- * Strictly separated from registration OTP verification — NEVER triggers Google Apps Script or OTP codes.
- *
- * @param {string} email - Participant email
- * @param {string} fullName - Participant name
- * @param {string} participantId - Ticket ID (e.g. SS124)
- * @param {string} siteUrl - Portal URL
- * @returns {Promise<{success: boolean, provider: string, deliveryStatus: string, error?: string}>}
- */
-export async function sendAnnouncementEmail(email, fullName, participantId, siteUrl) {
-  const subject = '🎅 Secret Santa Has Officially Started!';
-  const html = generateAnnouncementHtml(fullName, participantId, siteUrl);
-  const text = generateAnnouncementText(fullName, participantId, siteUrl);
-  const config = getEmailConfig();
-
-  let deliveryStatus = 'failed';
-  let errorMessage = null;
-  let activeProvider = 'none';
-
-  // 1. Primary: Gmail SMTP (Full rich HTML & Text, verified direct delivery)
-  if (config.smtpHost && config.smtpUser && config.smtpPass) {
-    try {
-      const transporter = createTransporter();
-      if (!transporter) {
-        throw new Error('SMTP transporter could not be created');
-      }
-      const info = await transporter.sendMail({
-        from: config.emailFrom,
-        to: email,
-        subject,
-        text,
-        html,
-      });
-
-      deliveryStatus = 'sent';
-      activeProvider = 'smtp';
-      errorMessage = null;
-      console.log(`✉️ Live announcement dispatched via Gmail SMTP to ${email} (MessageID: ${info.messageId})`);
-    } catch (smtpErr) {
-      errorMessage = `SMTP delivery error (${smtpErr.code || 'TIMEOUT/NETWORK'}): ${smtpErr.message}`;
-      console.warn(`[Announcement SMTP Error for ${email}]:`, smtpErr.message);
-
-      // Attempt automatic fallback to Port 587 STARTTLS if primary attempt failed
-      const isGmail = config.smtpHost.includes('gmail.com') || config.smtpUser.toLowerCase().endsWith('@gmail.com');
-      if (isGmail) {
-        try {
-          console.log(`Retrying delivery to ${email} via Gmail Port 587 STARTTLS...`);
-          const fallback587 = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
-            auth: {
-              user: config.smtpUser,
-              pass: config.smtpPass,
-            },
-            connectionTimeout: 30000,
-            greetingTimeout: 20000,
-            socketTimeout: 30000,
-          });
-
-          const fallbackInfo = await fallback587.sendMail({
-            from: config.emailFrom,
-            to: email,
-            subject,
-            text,
-            html,
-          });
-
-          deliveryStatus = 'sent';
-          activeProvider = 'smtp_587';
-          errorMessage = null;
-          console.log(`✉️ Live announcement dispatched via Gmail SMTP (Port 587) to ${email} (MessageID: ${fallbackInfo.messageId})`);
-        } catch (retryErr) {
-          errorMessage = `SMTP Port 465 error (${smtpErr.message}) & Port 587 error (${retryErr.message})`;
-          console.warn(`[Announcement SMTP Port 587 Retry Failed for ${email}]:`, retryErr.message);
-        }
-      }
-    }
-  } else {
-    const missing = [];
-    if (!config.smtpHost) missing.push('SMTP_HOST');
-    if (!config.smtpUser) missing.push('SMTP_USER');
-    if (!config.smtpPass) missing.push('SMTP_APP_PASSWORD');
-    errorMessage = `SMTP credentials incomplete on this server instance (Missing: ${missing.join(', ')}). Please configure these environment variables in your server settings.`;
-    console.warn(`[Announcement Warning for ${email}]:`, errorMessage);
-  }
-
-  // 2. Secondary fallback: Resend REST API (HTTPS port 443)
-  // ONLY attempt Resend if a verified domain is configured, OR if recipient is the sandbox owner
-  const isResendSandbox = (config.emailFrom || '').includes('resend.dev');
-  const canSendViaResend = config.resendApiKey && (!isResendSandbox || email.toLowerCase() === 'anandhuwork.8@gmail.com');
-
-  if (deliveryStatus !== 'sent' && canSendViaResend) {
-    try {
-      const resend = new Resend(config.resendApiKey);
-      const resendFrom = process.env.EMAIL_FROM || 'The Evergreen Express <onboarding@resend.dev>';
-      const res = await resend.emails.send({
-        from: resendFrom,
-        to: email,
-        subject,
-        text,
-        html,
-      });
-
-      if (res && res.data && res.data.id) {
-        deliveryStatus = 'sent';
-        activeProvider = 'resend';
-        errorMessage = null;
-        console.log(`✉️ Live announcement dispatched via Resend to ${email} (ID: ${res.data.id})`);
-      } else if (res && res.error) {
-        errorMessage = `${errorMessage ? errorMessage + ' | ' : ''}Resend error: ${res.error.message}`;
-      }
-    } catch (resendErr) {
-      errorMessage = `${errorMessage ? errorMessage + ' | ' : ''}Resend error: ${resendErr.message}`;
-      console.warn(`Resend announcement delivery attempt failed for ${email}:`, resendErr.message);
-    }
-  }
-
-  const isSuccess = deliveryStatus === 'sent';
-
-  // Record dispatch in email_notifications table asynchronously
-  query(
-    `INSERT INTO email_notifications (recipient_email, subject, status, error_message, sent_at)
-     VALUES ($1, $2, $3, $4, NOW())`,
-    [email, subject, deliveryStatus, errorMessage]
-  ).catch((dbErr) => {
-    console.warn('Could not record notification in database:', dbErr.message);
-  });
-
-  return {
-    success: isSuccess,
-    provider: activeProvider,
-    deliveryStatus,
-    error: isSuccess ? undefined : errorMessage,
   };
 }

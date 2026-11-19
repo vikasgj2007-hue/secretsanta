@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { query, getClient } from '../config/db.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { generateDraw, lockDraw, generateAndLockDraw } from '../services/drawService.js';
-import { sendOtpEmail } from '../services/emailService.js';
+import { sendOtpEmail, sendAnnouncementEmail, generateAnnouncementHtml } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -477,6 +477,167 @@ router.post('/event/end', requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Event end error:', error);
     return res.status(500).json({ success: false, message: 'Failed to end event.' });
+  }
+});
+
+/**
+ * GET /api/admin/announcement/status
+ * Fetches eligible participants list, previous announcement history, and sample preview
+ */
+router.get('/announcement/status', requireAdmin, async (req, res) => {
+  try {
+    const [eligibleRes, auditRes] = await Promise.all([
+      query(
+        `SELECT id, participant_id, full_name, email, department
+         FROM participants
+         WHERE email_verified = TRUE AND account_status = 'active'
+         ORDER BY participant_id ASC`
+      ),
+      query(
+        `SELECT details, created_at
+         FROM audit_logs
+         WHERE action = 'ANNOUNCEMENT_BULK_SENT'
+         ORDER BY created_at DESC
+         LIMIT 1`
+      ),
+    ]);
+
+    const participants = eligibleRes.rows.map(p => ({
+      id: p.id,
+      participantId: p.participant_id,
+      fullName: p.full_name,
+      email: p.email,
+      department: p.department,
+    }));
+
+    const lastAnnouncement = auditRes.rowCount > 0 ? {
+      sentAt: auditRes.rows[0].created_at,
+      details: typeof auditRes.rows[0].details === 'string'
+        ? JSON.parse(auditRes.rows[0].details)
+        : auditRes.rows[0].details,
+    } : null;
+
+    const siteUrl = process.env.APP_URL || req.headers.origin || `${req.protocol}://${req.get('host')}`;
+    const sampleRecipient = participants[0] || {
+      fullName: 'Dr. Robert Vance',
+      participantId: 'SS101',
+    };
+
+    const sampleHtml = generateAnnouncementHtml(sampleRecipient.fullName, sampleRecipient.participantId, siteUrl);
+
+    return res.json({
+      success: true,
+      eligibleCount: participants.length,
+      participants,
+      lastAnnouncement,
+      siteUrl,
+      preview: {
+        subject: '🎄 The Journey Begins! Discover Your Secret Santa Friend – THE EVERGREEN EXPRESS',
+        sampleRecipient,
+        html: sampleHtml,
+      },
+    });
+  } catch (error) {
+    console.error('Announcement status error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to retrieve announcement status.' });
+  }
+});
+
+/**
+ * POST /api/admin/announcement/send-single
+ * Sends personalized announcement email to one specific participant or test address
+ */
+router.post('/announcement/send-single', requireAdmin, async (req, res) => {
+  try {
+    const { participantId, testEmail } = req.body;
+    const siteUrl = process.env.APP_URL || req.headers.origin || `${req.protocol}://${req.get('host')}`;
+
+    // Test send to admin's custom email
+    if (testEmail) {
+      const cleanTestEmail = String(testEmail).trim().toLowerCase();
+      const testResult = await sendAnnouncementEmail(
+        cleanTestEmail,
+        'Faculty Member (Test)',
+        'SS101',
+        siteUrl
+      );
+      return res.json({
+        success: testResult.success,
+        email: cleanTestEmail,
+        participantId: 'SS101',
+        error: testResult.error,
+        provider: testResult.provider,
+      });
+    }
+
+    if (!participantId) {
+      return res.status(400).json({ success: false, message: 'Participant ID is required.' });
+    }
+
+    // Look up participant
+    const partRes = await query(
+      `SELECT id, participant_id, full_name, email, email_verified, account_status
+       FROM participants
+       WHERE (participant_id = $1 OR id::text = $1)
+       LIMIT 1`,
+      [String(participantId).trim()]
+    );
+
+    if (partRes.rowCount === 0) {
+      return res.status(404).json({ success: false, message: `Participant ${participantId} not found.` });
+    }
+
+    const participant = partRes.rows[0];
+
+    if (!participant.email_verified) {
+      return res.status(400).json({
+        success: false,
+        message: `Participant ${participant.participant_id} has not verified their email address.`,
+      });
+    }
+
+    const emailResult = await sendAnnouncementEmail(
+      participant.email,
+      participant.full_name,
+      participant.participant_id,
+      siteUrl
+    );
+
+    return res.json({
+      success: emailResult.success,
+      participantId: participant.participant_id,
+      fullName: participant.full_name,
+      email: participant.email,
+      provider: emailResult.provider,
+      error: emailResult.error,
+    });
+  } catch (error) {
+    console.error('Send single announcement error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/**
+ * POST /api/admin/announcement/log-batch
+ * Records completion of bulk announcement run in audit logs
+ */
+router.post('/announcement/log-batch', requireAdmin, async (req, res) => {
+  try {
+    const { total, sent, failed } = req.body;
+    await query(
+      `INSERT INTO audit_logs (actor_type, actor_id, action, ip_address, details)
+       VALUES ('admin', $1, 'ANNOUNCEMENT_BULK_SENT', $2, $3)`,
+      [
+        req.session.adminId,
+        req.ip || 'unknown',
+        JSON.stringify({ total, sent, failed, timestamp: new Date().toISOString() }),
+      ]
+    );
+
+    return res.json({ success: true, message: 'Announcement batch logged successfully.' });
+  } catch (error) {
+    console.error('Log batch announcement error:', error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 

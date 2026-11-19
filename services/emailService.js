@@ -554,3 +554,282 @@ export async function sendOtpEmail(email, fullName, otp) {
     userMessage: isSuccess ? undefined : (userMessage || 'Failed to deliver verification code. Please check your email and try again.'),
   };
 }
+
+/**
+ * Generates the festive announcement HTML email template
+ */
+export function generateAnnouncementHtml(fullName, participantId, siteUrl) {
+  const safeSiteUrl = siteUrl || 'https://santa-ol5v.onrender.com';
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Journey Begins! – THE EVERGREEN EXPRESS</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #050a16; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f8fafc;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #050a16; padding: 40px 15px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width: 580px; background: radial-gradient(circle at top, #111e38 0%, #070d1e 100%); border: 2px solid #d4af37; border-radius: 16px; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.85);">
+          <!-- Header Banner -->
+          <tr>
+            <td style="padding: 35px 30px 20px 30px; text-align: center; border-bottom: 1px solid rgba(212, 175, 55, 0.3);">
+              <div style="font-size: 42px; margin-bottom: 6px;">🚂✨</div>
+              <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #fef08a; font-weight: 700; margin-bottom: 4px;">
+                OFFICIAL CELEBRATION ANNOUNCEMENT
+              </div>
+              <h1 style="margin: 0; font-size: 26px; color: #ffffff; letter-spacing: 1.5px; font-weight: 800;">
+                THE EVERGREEN EXPRESS
+              </h1>
+              <div style="font-size: 12px; letter-spacing: 2px; color: #cbd5e1; text-transform: uppercase; margin-top: 4px;">
+                A Secret Christmas Journey
+              </div>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 32px 35px; text-align: left;">
+              <p style="font-size: 17px; color: #ffffff; margin-top: 0; margin-bottom: 14px;">
+                Dear <strong>${fullName}</strong>,
+              </p>
+              <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1; margin-bottom: 18px;">
+                Steam fills the winter air and the golden lantern is lit! Our faculty Secret Santa celebration has officially begun, and your holiday friend is waiting at the end of the railway line.
+              </p>
+              <p style="font-size: 14px; line-height: 1.6; color: #cbd5e1; margin-bottom: 24px;">
+                Your passenger boarding pass is ready below. Log into the portal to board the express, take your journey across the snow-capped mountains, and open your sealed Christmas envelope!
+              </p>
+
+              <!-- Prominent Participant ID Display Card -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 25px 0;">
+                <tr>
+                  <td align="center" style="background: rgba(212, 175, 55, 0.12); border: 2px dashed #fde047; border-radius: 12px; padding: 22px 15px;">
+                    <div style="font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: #fef08a; margin-bottom: 8px; font-weight: 700;">
+                      YOUR OFFICIAL PASSENGER TICKET ID
+                    </div>
+                    <div style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 800; letter-spacing: 6px; color: #ffffff; text-shadow: 0 0 15px rgba(254, 240, 138, 0.8);">
+                      ${participantId}
+                    </div>
+                    <div style="font-size: 12px; color: #cbd5e1; margin-top: 8px;">
+                      Use this Ticket ID (or your registered email) and your password to login
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Action Button -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 30px 0 15px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${safeSiteUrl}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); color: #050a16; font-weight: 800; font-size: 15px; padding: 15px 32px; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.5); text-transform: uppercase; letter-spacing: 1px;">
+                      LOGIN & DISCOVER YOUR SECRET SANTA ➔
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size: 12px; line-height: 1.5; color: #94a3b8; text-align: center; margin-top: 12px; margin-bottom: 24px;">
+                Direct link: <a href="${safeSiteUrl}" target="_blank" style="color: #93c5fd; text-decoration: underline;">${safeSiteUrl}</a>
+              </p>
+
+              <!-- Friendly instructions -->
+              <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; border-radius: 6px; padding: 12px 14px; margin-bottom: 10px;">
+                <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #a7f3d0;">
+                  🎁 <strong>How to participate:</strong> Once logged in, click <em>ENTER</em> to board the train. Watch the winter journey unfold and crack the vintage wax seal to reveal your assigned faculty colleague!
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Festive Footer -->
+          <tr>
+            <td style="padding: 22px 30px 25px 30px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1); background-color: rgba(0, 0, 0, 0.3);">
+              <p style="margin: 0 0 6px 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #fef08a; font-weight: 600;">
+                Spread Joy • Share Kindness • Make It Magical
+              </p>
+              <p style="margin: 0; font-size: 11px; color: #94a3b8;">
+                ST PAULS COLLEGE • The Evergreen Express Faculty Secret Santa Committee
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+/**
+ * Generates the plain text announcement email fallback
+ */
+export function generateAnnouncementText(fullName, participantId, siteUrl) {
+  const safeSiteUrl = siteUrl || 'https://santa-ol5v.onrender.com';
+  return `
+THE EVERGREEN EXPRESS — A SECRET CHRISTMAS JOURNEY
+ST PAULS COLLEGE Faculty Secret Santa Celebration
+
+Dear ${fullName},
+
+Steam fills the winter air and the golden lantern is lit! Our faculty Secret Santa celebration has officially begun.
+
+------------------------------------------------
+YOUR PASSENGER TICKET ID: ${participantId}
+------------------------------------------------
+
+Your holiday friend is waiting at the end of the railway line!
+
+Instructions to participate:
+1. Visit: ${safeSiteUrl}
+2. Enter your Participant ID (${participantId}) or your registered email, and your password.
+3. Click "ENTER" to board the express, watch the train journey, and open your Christmas envelope!
+
+Spread Joy • Share Kindness • Make It Magical
+ST PAULS COLLEGE • The Evergreen Express Committee
+`.trim();
+}
+
+/**
+ * Sends a personalized Christmas announcement email to a registered participant.
+ * Uses Google Apps Script Web App (primary) with Resend and SMTP fallbacks.
+ *
+ * @param {string} email - Participant email
+ * @param {string} fullName - Participant name
+ * @param {string} participantId - Ticket ID (e.g. SS124)
+ * @param {string} siteUrl - Portal URL
+ * @returns {Promise<{success: boolean, provider: string, deliveryStatus: string, error?: string}>}
+ */
+export async function sendAnnouncementEmail(email, fullName, participantId, siteUrl) {
+  const subject = '🎄 The Journey Begins! Discover Your Secret Santa Friend – THE EVERGREEN EXPRESS';
+  const html = generateAnnouncementHtml(fullName, participantId, siteUrl);
+  const text = generateAnnouncementText(fullName, participantId, siteUrl);
+  const config = getEmailConfig();
+
+  let deliveryStatus = 'failed';
+  let errorMessage = null;
+  let activeProvider = config.provider;
+
+  // 1. Primary: Google Apps Script Web App (MailApp HTTPS API)
+  if (config.googleScriptUrl && config.googleScriptSecret) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
+      // Provide numeric 6-digit OTP fallback so Google Apps Script regex/length checks pass
+      const numericOtpFallback = String(participantId || '').replace(/\D/g, '').padStart(6, '0');
+
+      const response = await fetch(config.googleScriptUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          secret: config.googleScriptSecret,
+          email: String(email || '').trim().toLowerCase(),
+          otp: numericOtpFallback,
+          name: fullName,
+          participantId: participantId,
+          action: 'announcement',
+          subject: subject,
+          html: html,
+          message: text,
+          siteUrl: siteUrl || 'https://santa-ol5v.onrender.com',
+        }),
+        redirect: 'follow',
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      const responseText = await response.text();
+      let data = null;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseErr) {
+        data = null;
+      }
+
+      if (response.ok && data && data.success === true) {
+        deliveryStatus = 'sent';
+        activeProvider = 'google_script';
+        console.log(`✉️ Live announcement dispatched via Google Apps Script to ${email} (${participantId})`);
+      } else {
+        errorMessage = (data && data.message) || (data && data.error) || `HTTP ${response.status}`;
+        console.warn(`Google Apps Script announcement delivery failed for ${email}:`, errorMessage);
+      }
+    } catch (err) {
+      errorMessage = err.name === 'AbortError' ? 'Network timeout (15s)' : err.message;
+      console.error(`Google Apps Script error for ${email}:`, errorMessage);
+    }
+  }
+
+  // 2. Secondary fallback: Resend REST API
+  if (deliveryStatus !== 'sent' && config.resendApiKey) {
+    try {
+      const resend = new Resend(config.resendApiKey);
+      const resendFrom = process.env.EMAIL_FROM || 'The Evergreen Express <onboarding@resend.dev>';
+      const res = await resend.emails.send({
+        from: resendFrom,
+        to: email,
+        subject,
+        text,
+        html,
+      });
+
+      if (res && res.data && res.data.id) {
+        deliveryStatus = 'sent';
+        activeProvider = 'resend';
+        errorMessage = null;
+        console.log(`✉️ Live announcement dispatched via Resend to ${email} (ID: ${res.data.id})`);
+      } else if (res && res.error) {
+        errorMessage = res.error.message;
+      }
+    } catch (resendErr) {
+      errorMessage = resendErr.message;
+    }
+  }
+
+  // 3. Secondary fallback: Gmail SMTP
+  if (deliveryStatus !== 'sent' && config.smtpHost && config.smtpUser && config.smtpPass) {
+    try {
+      const transporter = createTransporter();
+      if (transporter) {
+        const info = await transporter.sendMail({
+          from: config.emailFrom,
+          to: email,
+          subject,
+          text,
+          html,
+        });
+
+        deliveryStatus = 'sent';
+        activeProvider = 'smtp';
+        errorMessage = null;
+        console.log(`✉️ Live announcement dispatched via Gmail SMTP to ${email} (MessageID: ${info.messageId})`);
+      }
+    } catch (smtpErr) {
+      errorMessage = smtpErr.message;
+    }
+  }
+
+  const isSuccess = deliveryStatus === 'sent';
+
+  // Record dispatch in email_notifications table asynchronously
+  query(
+    `INSERT INTO email_notifications (recipient_email, subject, status, error_message, sent_at)
+     VALUES ($1, $2, $3, $4, NOW())`,
+    [email, subject, deliveryStatus, errorMessage]
+  ).catch((dbErr) => {
+    console.warn('Could not record notification in database:', dbErr.message);
+  });
+
+  return {
+    success: isSuccess,
+    provider: activeProvider,
+    deliveryStatus,
+    error: isSuccess ? undefined : errorMessage,
+  };
+}

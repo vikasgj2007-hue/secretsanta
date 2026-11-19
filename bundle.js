@@ -941,6 +941,32 @@
       if (!res.ok) throw new Error(data.message || "Database reset failed.");
       return data;
     }
+    async getAnnouncementStatus() {
+      const res = await fetch("/api/admin/announcement/status", { credentials: "include" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Failed to fetch announcement status.");
+      return data;
+    }
+    async sendAnnouncementSingle(participantId, testEmail = null) {
+      const res = await fetch("/api/admin/announcement/send-single", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ participantId, testEmail })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Failed to dispatch announcement email.");
+      return data;
+    }
+    async logAnnouncementBatch(summary) {
+      const res = await fetch("/api/admin/announcement/log-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(summary)
+      });
+      return res.json().catch(() => ({}));
+    }
   };
   var databaseService = new DatabaseService();
 
@@ -3335,6 +3361,11 @@
             </button>
           `}
 
+          <!-- NOTIFY PARTICIPANTS -->
+          <button id="btn-admin-notify-participants" class="btn btn-secondary" style="border-color: var(--color-gold); color: #fef08a; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);">
+            \u{1F384} NOTIFY PARTICIPANTS
+          </button>
+
           <!-- STEP 4: Start The Evergreen Express -->
           ${event.eventStatus !== "active" ? `
             <button id="btn-admin-start-event" class="btn btn-crimson" ${!canStartEvent ? `disabled title="${!event.drawLocked ? "Lock draw first before starting the event" : "Event ended"}"` : ""} style="font-weight: 700; letter-spacing: 1px;">
@@ -3527,6 +3558,12 @@
           lockDrawBtn.disabled = false;
           lockDrawBtn.textContent = "3. Lock Secret Santa Draw \u{1F512}";
         }
+      };
+    }
+    const notifyParticipantsBtn = document.getElementById("btn-admin-notify-participants");
+    if (notifyParticipantsBtn) {
+      notifyParticipantsBtn.onclick = () => {
+        showNotificationModal(currentUser);
       };
     }
     const startEventBtn = document.getElementById("btn-admin-start-event");
@@ -3833,6 +3870,289 @@
         }
       };
     }
+  }
+  async function showNotificationModal(currentUser) {
+    let modal = document.getElementById("admin-notify-modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "admin-notify-modal";
+      modal.className = "modal-backdrop active";
+      document.body.appendChild(modal);
+    }
+    modal.classList.add("active");
+    modal.innerHTML = `
+    <div class="modal-window" style="max-width: 760px; max-height: 90vh; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+        <div>
+          <h2 style="font-family: var(--font-display); color: var(--color-gold-champagne); margin: 0; font-size: 1.4rem;">
+            \u{1F384} Notify Registered Participants
+          </h2>
+          <span style="font-size: 12px; color: #cbd5e1;">Send Secret Santa Announcement & Login Tickets</span>
+        </div>
+        <button id="btn-close-notify-modal" class="modal-close-btn">&times;</button>
+      </div>
+      <div id="notify-modal-content" style="overflow-y: auto; flex: 1; padding-right: 4px;">
+        <div style="text-align: center; padding: 2.5rem 1rem; color: #94a3b8;">
+          <span class="button-spinner" style="display: inline-block; width: 24px; height: 24px; border-width: 3px; margin-bottom: 0.75rem;"></span>
+          <p style="margin: 0; font-size: 14px;">Loading eligible faculty members & notification status...</p>
+        </div>
+      </div>
+    </div>
+  `;
+    document.getElementById("btn-close-notify-modal").onclick = () => modal.classList.remove("active");
+    let data;
+    try {
+      data = await databaseService.getAnnouncementStatus();
+    } catch (err) {
+      const content = document.getElementById("notify-modal-content");
+      if (content) {
+        content.innerHTML = `
+        <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 8px; padding: 1.25rem; color: #fca5a5;">
+          <strong>Failed to load announcement status:</strong> ${err.message}
+        </div>
+      `;
+      }
+      return;
+    }
+    const { eligibleCount, participants, lastAnnouncement, preview, siteUrl } = data;
+    let activeTab = "preview";
+    let isSending = false;
+    let sentList = /* @__PURE__ */ new Set();
+    let failedMap = /* @__PURE__ */ new Map();
+    const renderModalBody = () => {
+      const content = document.getElementById("notify-modal-content");
+      if (!content) return;
+      content.innerHTML = `
+      <!-- Status & Notice Banner -->
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+        <div style="flex: 1; min-width: 240px; background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 8px; padding: 0.75rem 1rem;">
+          <div style="font-size: 11px; text-transform: uppercase; color: #fef08a; font-weight: 700; letter-spacing: 1px;">
+            Eligible Recipients
+          </div>
+          <div style="font-size: 1.35rem; font-weight: 800; color: #ffffff; margin-top: 2px;">
+            ${eligibleCount} <span style="font-size: 0.85rem; font-weight: 400; color: #cbd5e1;">Verified Faculty Member${eligibleCount === 1 ? "" : "s"}</span>
+          </div>
+        </div>
+
+        <div style="flex: 1; min-width: 240px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 0.75rem 1rem;">
+          <div style="font-size: 11px; text-transform: uppercase; color: #86efac; font-weight: 700; letter-spacing: 1px;">
+            Email Delivery Integration
+          </div>
+          <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin-top: 4px;">
+            Google Apps Script Web App \u2709\uFE0F
+          </div>
+        </div>
+      </div>
+
+      ${lastAnnouncement ? `
+        <div style="background: rgba(245, 158, 11, 0.12); border-left: 4px solid #f59e0b; border-radius: 6px; padding: 10px 14px; margin-bottom: 1.25rem; font-size: 12px; color: #fde047;">
+          <strong>\u{1F514} Previous Notification Broadcast:</strong> Sent on ${new Date(lastAnnouncement.sentAt).toLocaleString()} (${lastAnnouncement.details?.sent || 0} delivered, ${lastAnnouncement.details?.failed || 0} failed).
+        </div>
+      ` : ""}
+
+      <!-- Navigation Tabs -->
+      <div style="display: flex; gap: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1rem;">
+        <button id="tab-btn-preview" class="btn btn-secondary" style="border-radius: 6px 6px 0 0; padding: 0.5rem 1rem; font-size: 13px; border-bottom: none; ${activeTab === "preview" ? "background: rgba(212, 175, 55, 0.2); border-color: var(--color-gold); color: #fef08a;" : "opacity: 0.7;"}">
+          \u2709\uFE0F Email Preview
+        </button>
+        <button id="tab-btn-roster" class="btn btn-secondary" style="border-radius: 6px 6px 0 0; padding: 0.5rem 1rem; font-size: 13px; border-bottom: none; ${activeTab === "roster" ? "background: rgba(212, 175, 55, 0.2); border-color: var(--color-gold); color: #fef08a;" : "opacity: 0.7;"}">
+          \u{1F465} Recipients Roster (${participants.length})
+        </button>
+      </div>
+
+      <!-- Tab Content: Preview -->
+      <div id="tab-content-preview" style="${activeTab === "preview" ? "display: block;" : "display: none;"}">
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px 14px; margin-bottom: 1rem; font-size: 13px;">
+          <div style="color: #94a3b8; margin-bottom: 4px;"><strong>Subject:</strong> <span style="color: #fef08a;">${preview.subject}</span></div>
+          <div style="color: #94a3b8;"><strong>Sample Recipient:</strong> ${preview.sampleRecipient.fullName} (<code style="color: #fef08a;">${preview.sampleRecipient.participantId}</code>)</div>
+        </div>
+
+        <div style="border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 8px; overflow: hidden; background: #050a16; margin-bottom: 1.25rem;">
+          <iframe id="announcement-preview-frame" style="width: 100%; height: 380px; border: none; background: #050a16;" srcdoc="${encodeURIComponent(preview.html)}"></iframe>
+        </div>
+
+        <!-- Send Test Email -->
+        <div style="display: flex; gap: 0.5rem; align-items: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 14px; margin-bottom: 1.25rem;">
+          <span style="font-size: 12px; color: #cbd5e1; white-space: nowrap;">Send sample test email to:</span>
+          <input type="email" id="input-test-email" class="form-input" placeholder="e.g. your-email@gmail.com" style="padding: 0.4rem 0.75rem; font-size: 12px; flex: 1;" />
+          <button id="btn-send-test-email" class="btn btn-secondary" style="font-size: 12px; padding: 0.45rem 0.85rem; white-space: nowrap;">
+            Send Test \u2709\uFE0F
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Content: Recipients Roster -->
+      <div id="tab-content-roster" style="${activeTab === "roster" ? "display: block;" : "display: none;"}">
+        <div style="max-height: 380px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 1.25rem;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 2px solid rgba(212, 175, 55, 0.3); color: var(--color-gold-champagne); background: rgba(0,0,0,0.3); position: sticky; top: 0;">
+                <th style="padding: 0.6rem 0.75rem;">Ticket ID</th>
+                <th style="padding: 0.6rem 0.75rem;">Faculty Name</th>
+                <th style="padding: 0.6rem 0.75rem;">Email Address</th>
+                <th style="padding: 0.6rem 0.75rem;">Delivery Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${participants.map((p) => {
+        const isSent = sentList.has(p.participantId);
+        const isFailed = failedMap.has(p.participantId);
+        let statusBadge = '<span style="color: #94a3b8;">Pending</span>';
+        if (isSent) {
+          statusBadge = '<span style="color: #4ade80; font-weight: 600;">\u2713 Delivered</span>';
+        } else if (isFailed) {
+          statusBadge = `<span style="color: #ef4444; font-weight: 600;" title="${failedMap.get(p.participantId)}">\u2715 Failed</span>`;
+        }
+        return `
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                    <td style="padding: 0.5rem 0.75rem; font-family: monospace; color: #fef08a; font-weight: 700;">${p.participantId}</td>
+                    <td style="padding: 0.5rem 0.75rem; font-weight: 500;">${p.fullName}</td>
+                    <td style="padding: 0.5rem 0.75rem; color: #cbd5e1;">${p.email}</td>
+                    <td id="status-badge-${p.participantId}" style="padding: 0.5rem 0.75rem;">${statusBadge}</td>
+                  </tr>
+                `;
+      }).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Live Progress Bar (when sending) -->
+      <div id="notify-progress-area" style="display: ${isSending ? "block" : "none"}; margin-bottom: 1.25rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px 16px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+          <span id="notify-progress-text" style="color: #fef08a; font-weight: 600;">Preparing batch...</span>
+          <span id="notify-progress-percent" style="color: #cbd5e1; font-family: monospace;">0%</span>
+        </div>
+        <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden;">
+          <div id="notify-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #d4af37, #22c55e); transition: width 0.2s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div id="notify-result-summary" style="font-size: 13px; color: #cbd5e1;">
+          ${eligibleCount === 0 ? "No eligible participants found." : `Ready to notify ${eligibleCount} registered faculty member${eligibleCount === 1 ? "" : "s"}.`}
+        </div>
+
+        <div style="display: flex; gap: 0.65rem;">
+          <button id="btn-cancel-notify" class="btn btn-secondary" ${isSending ? "disabled" : ""}>
+            ${sentList.size > 0 ? "Close" : "Cancel"}
+          </button>
+
+          ${failedMap.size > 0 && !isSending ? `
+            <button id="btn-retry-failed-notify" class="btn btn-crimson" style="font-weight: 600;">
+              \u{1F504} Retry Failed Emails (${failedMap.size})
+            </button>
+          ` : ""}
+
+          ${!isSending && sentList.size < participants.length && eligibleCount > 0 ? `
+            <button id="btn-confirm-send-notify" class="btn btn-primary" style="background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); color: #050a16; font-weight: 700;">
+              \u{1F680} Confirm & Send to All (${participants.length})
+            </button>
+          ` : ""}
+        </div>
+      </div>
+    `;
+      document.getElementById("tab-btn-preview").onclick = () => {
+        activeTab = "preview";
+        renderModalBody();
+      };
+      document.getElementById("tab-btn-roster").onclick = () => {
+        activeTab = "roster";
+        renderModalBody();
+      };
+      document.getElementById("btn-cancel-notify").onclick = () => modal.classList.remove("active");
+      const testBtn = document.getElementById("btn-send-test-email");
+      if (testBtn) {
+        testBtn.onclick = async () => {
+          const testInput = document.getElementById("input-test-email");
+          const testEmail = (testInput?.value || "").trim();
+          if (!testEmail || !testEmail.includes("@")) {
+            showToast("Please enter a valid email address to receive the test email.", "error");
+            return;
+          }
+          testBtn.disabled = true;
+          testBtn.textContent = "Sending Test...";
+          try {
+            const res = await databaseService.sendAnnouncementSingle(null, testEmail);
+            if (res.success) {
+              showToast(`Test announcement delivered to ${testEmail}! Check your inbox.`, "success");
+            } else {
+              showToast(`Test failed: ${res.error || "Delivery failed"}`, "error");
+            }
+          } catch (e) {
+            showToast(`Test error: ${e.message}`, "error");
+          } finally {
+            testBtn.disabled = false;
+            testBtn.textContent = "Send Test \u2709\uFE0F";
+          }
+        };
+      }
+      const confirmBtn = document.getElementById("btn-confirm-send-notify");
+      if (confirmBtn) {
+        confirmBtn.onclick = () => startBulkDispatch(participants);
+      }
+      const retryBtn = document.getElementById("btn-retry-failed-notify");
+      if (retryBtn) {
+        retryBtn.onclick = () => {
+          const failedParticipants = participants.filter((p) => failedMap.has(p.participantId));
+          startBulkDispatch(failedParticipants);
+        };
+      }
+    };
+    const startBulkDispatch = async (targetParticipants) => {
+      if (!targetParticipants || targetParticipants.length === 0) return;
+      if (!confirm(`Are you sure you want to send the Secret Santa announcement to ${targetParticipants.length} participant(s)?`)) {
+        return;
+      }
+      isSending = true;
+      activeTab = "roster";
+      renderModalBody();
+      const progressArea = document.getElementById("notify-progress-area");
+      const progressBar = document.getElementById("notify-progress-bar");
+      const progressText = document.getElementById("notify-progress-text");
+      const progressPercent = document.getElementById("notify-progress-percent");
+      if (progressArea) progressArea.style.display = "block";
+      let current = 0;
+      const total = targetParticipants.length;
+      for (const p of targetParticipants) {
+        current++;
+        const pct = Math.round(current / total * 100);
+        if (progressBar) progressBar.style.width = `${pct}%`;
+        if (progressPercent) progressPercent.textContent = `${pct}%`;
+        if (progressText) progressText.textContent = `Sending ${current} of ${total}: ${p.fullName} (${p.participantId})...`;
+        try {
+          const res = await databaseService.sendAnnouncementSingle(p.participantId);
+          if (res.success) {
+            sentList.add(p.participantId);
+            failedMap.delete(p.participantId);
+            const badge = document.getElementById(`status-badge-${p.participantId}`);
+            if (badge) badge.innerHTML = '<span style="color: #4ade80; font-weight: 600;">\u2713 Delivered</span>';
+          } else {
+            failedMap.set(p.participantId, res.error || "Delivery failed");
+            const badge = document.getElementById(`status-badge-${p.participantId}`);
+            if (badge) badge.innerHTML = `<span style="color: #ef4444; font-weight: 600;" title="${res.error}">\u2715 Failed</span>`;
+          }
+        } catch (err) {
+          failedMap.set(p.participantId, err.message);
+          const badge = document.getElementById(`status-badge-${p.participantId}`);
+          if (badge) badge.innerHTML = `<span style="color: #ef4444; font-weight: 600;" title="${err.message}">\u2715 Failed</span>`;
+        }
+      }
+      isSending = false;
+      try {
+        await databaseService.logAnnouncementBatch({
+          total: targetParticipants.length,
+          sent: targetParticipants.length - failedMap.size,
+          failed: failedMap.size
+        });
+      } catch (e) {
+        console.warn("Could not log batch audit:", e.message);
+      }
+      showToast(`Bulk notification completed: ${sentList.size} delivered, ${failedMap.size} failed.`, failedMap.size === 0 ? "success" : "info");
+      renderModalBody();
+    };
+    renderModalBody();
   }
 
   // src/components/departmentCredit.js

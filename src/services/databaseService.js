@@ -275,6 +275,35 @@ class DatabaseService {
     if (!res.ok) throw new Error(data.message || 'Database reset failed.');
     return data;
   }
+
+  async getAnnouncementStatus() {
+    const res = await fetch('/api/admin/announcement/status', { credentials: 'include' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch announcement status.');
+    return data;
+  }
+
+  async sendAnnouncementSingle(participantId, testEmail = null) {
+    const res = await fetch('/api/admin/announcement/send-single', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ participantId, testEmail }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || 'Failed to dispatch announcement email.');
+    return data;
+  }
+
+  async logAnnouncementBatch(summary) {
+    const res = await fetch('/api/admin/announcement/log-batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(summary),
+    });
+    return res.json().catch(() => ({}));
+  }
 }
 
 export const databaseService = new DatabaseService();
